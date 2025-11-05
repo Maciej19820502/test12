@@ -17,3 +17,16 @@
 
 Po wykonaniu powyższych kroków aplikacja uruchomi się i poprowadzi Cię przez trzy
 plansze lekcji z Maciejem.
+
+## Jak uruchomić testy
+
+Do weryfikacji integralności pliku `index.html` wykorzystujemy wbudowany w Node.js
+mechanizm `node:test`. Upewnij się, że korzystasz z Node.js w wersji 18 lub nowszej,
+a następnie wykonaj:
+
+```bash
+npm test
+```
+
+Polecenie uruchomi zestaw testów sprawdzających obecność kluczowych elementów lekcji,
+w tym sekcji nawigacji, timerów konwersacji oraz narracji głosowej Macieja.

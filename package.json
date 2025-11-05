@@ -1,0 +1,16 @@
+{
+  "name": "maciej-lesson",
+  "version": "1.0.0",
+  "description": "Interaktywna lekcja oceny projektów AI w finansach.",
+  "scripts": {
+    "test": "node --test"
+  },
+  "keywords": [
+    "lekcja",
+    "ai",
+    "finanse"
+  ],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs"
+}
