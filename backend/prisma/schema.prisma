@@ -1,0 +1,47 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Training {
+  id        Int       @id @default(autoincrement())
+  title     String
+  description String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  sections  Section[]
+}
+
+enum SectionType {
+  voice
+  text
+  video
+}
+
+model Section {
+  id          Int          @id @default(autoincrement())
+  title       String
+  order       Int          @default(0)
+  type        SectionType
+  videoUrl    String?
+  training    Training     @relation(fields: [trainingId], references: [id])
+  trainingId  Int
+  prompt      Prompt?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
+model Prompt {
+  id         Int      @id @default(autoincrement())
+  content    String
+  voiceModel String?
+  textModel  String?
+  section    Section @relation(fields: [sectionId], references: [id])
+  sectionId  Int     @unique
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
