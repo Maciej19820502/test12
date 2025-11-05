@@ -1,0 +1,53 @@
+{
+  "trainings": [
+    {
+      "id": "maciej-ocena-ai",
+      "title": "Ocena projektów AI w finansach",
+      "description": "Lekcja prowadzona przez Macieja dotycząca oceny wdrożeń AI w finansach.",
+      "steps": [
+        {
+          "id": "wprowadzenie-glosowe",
+          "type": "voice",
+          "title": "Wprowadzenie Macieja",
+          "prompt": "Jesteś Maciej. Prowadzisz lekcję z zakresu oceny projektów wdrożeń AI w finansach. W ciągu 5 minut wprowadzasz uczestnika w tajniki tego zakresu.",
+          "script": "Cześć, tu Maciej. Dziś pokażę Ci, jak oceniać projekty wdrożeń AI w finansach. Zaczniemy od mapy ryzyk regulacyjnych, a potem przejdziemy do analizy jakości danych i mierzenia efektów biznesowych. Zapisuj pytania, bo wrócimy do nich przy weryfikacji wiedzy.",
+          "voice": "Maciej",
+          "durationMinutes": 5
+        },
+        {
+          "id": "symulacja-czatu",
+          "type": "text",
+          "title": "Rozmowa tekstowa z weryfikatorem",
+          "prompt": "Prowadź rozmowę z weryfikatorem projektów AI, aby sprawdzić rozumienie kryteriów oceny.",
+          "durationMinutes": 10,
+          "partnerName": "Weryfikator AI",
+          "openingMessage": "Dzień dobry, tu weryfikator projektów AI. Jak oceniasz gotowość organizacji do wdrożeń algorytmów?",
+          "autoReplies": [
+            "Zwróć uwagę na zgodność z regulacjami i kompletność dokumentacji danych.",
+            "Jakie mierniki sukcesu wdrożenia zaplanowałeś?",
+            "Czy w projekcie uwzględniono mechanizmy monitorowania modeli po wdrożeniu?",
+            "Świetnie! Przejdźmy do podsumowania z Maciejem."
+          ],
+          "modelUrl": "https://chatgpt.com/g/g-68fb34ca61c08191a965bdb1b15c472f-weryfikator-projektow-ai"
+        },
+        {
+          "id": "weryfikacja-glosowa",
+          "type": "voice",
+          "title": "Weryfikacja wiedzy",
+          "prompt": "Jesteś Maciej. W ciągu 5 minut przeprowadzasz weryfikację wiedzy uczestnika i tworzysz raport do 200 znaków.",
+          "script": "Świetnie sobie poradziłeś! Teraz zadam kilka pytań kontrolnych. Jak monitorowałbyś model po wdrożeniu? Jakie KPI są kluczowe? Po odpowiedzi podsumuję wszystko w krótkim raporcie.",
+          "voice": "Maciej",
+          "durationMinutes": 5,
+          "summaryLimit": 200
+        },
+        {
+          "id": "material-wideo",
+          "type": "video",
+          "title": "Studium przypadku",
+          "description": "Obejrzyj studium przypadku dotyczące wdrożenia analityki kredytowej opartej o AI.",
+          "youtubeUrl": "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+        }
+      ]
+    }
+  ]
+}

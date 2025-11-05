@@ -6,58 +6,41 @@ const path = require('node:path');
 const htmlPath = path.join(__dirname, '..', 'index.html');
 const html = fs.readFileSync(htmlPath, 'utf-8');
 
-test('contains exactly three stage sections with expected ids', () => {
-  const stageMatches = html.match(/<section class=\"stage/g) || [];
-  assert.equal(stageMatches.length, 3, 'Powinny istnieć trzy sekcje lekcji.');
+function includesAll(...snippets) {
+  return snippets.every((snippet) => html.includes(snippet));
+}
 
-  ['stage-intro', 'stage-chat', 'stage-assessment'].forEach((id) => {
-    assert.ok(
-      html.includes(`id=\"${id}\"`),
-      `Sekcja ${id} powinna być zdefiniowana w pliku HTML.`
-    );
-  });
-});
-
-test('navigation buttons map to available stages', () => {
-  ['intro', 'chat', 'assessment'].forEach((name) => {
-    assert.ok(
-      html.includes(`data-stage=\"${name}\"`),
-      `Nawigacja powinna zawierać przycisk dla etapu ${name}.`
-    );
-  });
-});
-
-test('chat stage exposes timer and control buttons', () => {
+test('strona zawiera interfejs wyboru szkolenia oraz konfigurator', () => {
   assert.ok(
-    html.includes('id=\"chat-timer\">10:00'),
-    'Timer rozmowy powinien zaczynać od 10:00.'
-  );
-  ['chat-start', 'chat-end'].forEach((id) => {
-    assert.ok(
-      html.includes(`id=\"${id}\"`),
-      `Przycisk sterujący ${id} powinien istnieć.`
-    );
-  });
-});
-
-test('assessment box and report are ukryte na starcie', () => {
-  assert.ok(
-    html.includes('id=\"assessment-box\" hidden'),
-    'Blok pytań powinien być ukryty do czasu rozpoczęcia.'
-  );
-  assert.ok(
-    html.includes('id=\"assessment-report\" hidden'),
-    'Raport końcowy powinien być ukryty do czasu zakończenia rozmowy.'
+    includesAll('id="training-picker"', 'id="builder-form"', 'id="builder-steps"'),
+    'Powinny istnieć podstawowe elementy interfejsu do wyboru i budowania szkolenia.'
   );
 });
 
-test('intro script zawiera narrację Macieja oraz obsługę syntezy mowy', () => {
+test('w kodzie znajduje się odwołanie do API szkoleń', () => {
   assert.ok(
-    html.includes('Cześć, tu Maciej'),
-    'Narracja Macieja powinna być zapisana w skrypcie.'
+    html.includes("fetch('/api/trainings'"),
+    'Skrypt klienta powinien pobierać dane z endpointu /api/trainings.'
   );
+});
+
+test('sekcja scenariusza obejmuje moduły głosowe, tekstowe i wideo', () => {
+  assert.ok(
+    includesAll('Konwersacja głosowa', 'Konwersacja tekstowa', 'Materiał wideo'),
+    'W treści HTML powinny występować nagłówki formularzy dla wszystkich typów modułów.'
+  );
+});
+
+test('chat stage zachowuje timer oraz obsługę wysyłania wiadomości', () => {
+  assert.ok(
+    includesAll('id="chat-timer"', 'data-action="send"', 'data-action="start"'),
+    'Moduł rozmowy tekstowej powinien mieć timer oraz przyciski start/send.'
+  );
+});
+
+test('skrypt wspomina o syntezie mowy dla modułów głosowych', () => {
   assert.ok(
     html.includes('speechSynthesis'),
-    'Skrypt powinien korzystać z Web Speech API.'
+    'W kodzie klienta należy korzystać z Web Speech API.'
   );
 });

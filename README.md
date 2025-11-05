@@ -1,32 +1,78 @@
-# Lekcja online: Weryfikacja projektów AI w finansach
+# Studio szkoleń AI
 
-## Jak uruchomić projekt
+Rozbudowana wersja lekcji z Maciejem umożliwia teraz budowanie dowolnych scenariuszy
+szkoleniowych z wykorzystaniem modułów głosowych, tekstowych oraz materiałów wideo.
+W repozytorium znajdziesz przykładowe szkolenie „Ocena projektów AI w finansach”, a
+backend w Node.js pozwala dodawać kolejne konfiguracje przez API lub wbudowany
+konfigurator.
 
-1. Sklonuj repozytorium lub pobierz paczkę z plikami projektu.
-2. Uruchom prosty serwer HTTP w katalogu projektu, aby przeglądarka mogła poprawnie
-   załadować zasoby audio oraz skrypty. Możesz skorzystać z wbudowanego w Pythona
-   modułu `http.server`:
+## Wymagania
+- Node.js 18 lub nowszy
+- npm (instalowany wraz z Node.js)
 
+## Instalacja
+```bash
+npm install
+```
+
+## Uruchomienie aplikacji
+1. W terminalu uruchom backend i serwer plików statycznych:
    ```bash
-   python3 -m http.server 8000
+   npm start
    ```
+   Aplikacja domyślnie działa na porcie `3000`.
 
-3. Otwórz przeglądarkę i wejdź na adres `http://localhost:8000/index.html`.
-4. Upewnij się, że przeglądarka ma włączone odtwarzanie dźwięku oraz dostęp do mikrofonu
-   (jeśli chcesz korzystać z funkcji rozpoznawania mowy).
+2. Otwórz przeglądarkę i wejdź na adres `http://localhost:3000/`.
 
-Po wykonaniu powyższych kroków aplikacja uruchomi się i poprowadzi Cię przez trzy
-plansze lekcji z Maciejem.
+3. W panelu po lewej stronie wybierz istniejące szkolenie. W sekcji po prawej
+   możesz dodać nowe moduły i zapisać własny scenariusz. Po zapisaniu lista
+   szkoleń odświeży się automatycznie.
 
-## Jak uruchomić testy
+### Tryb deweloperski
+Na czas prac możesz użyć automatycznego restartu serwera:
+```bash
+npm run dev
+```
 
-Do weryfikacji integralności pliku `index.html` wykorzystujemy wbudowany w Node.js
-mechanizm `node:test`. Upewnij się, że korzystasz z Node.js w wersji 18 lub nowszej,
-a następnie wykonaj:
+## API backendu
+Backend udostępnia proste REST API operujące na pliku `data/trainings.json`:
 
+- `GET /api/trainings` – lista wszystkich szkoleń
+- `GET /api/trainings/:id` – pojedyncze szkolenie po identyfikatorze
+- `POST /api/trainings` – utworzenie nowego szkolenia (patrz format poniżej)
+- `PUT /api/trainings/:id` – pełna aktualizacja szkolenia
+- `DELETE /api/trainings/:id` – usunięcie szkolenia
+
+### Przykładowe żądanie POST
+```json
+{
+  "title": "Warsztat wdrożeń AI",
+  "description": "Szkolenie łączące moduły głosowe i wideo.",
+  "steps": [
+    {
+      "type": "voice",
+      "title": "Rozgrzewka",
+      "prompt": "Powitaj uczestnika i przedstaw cele.",
+      "script": "Cześć! Dziś skupimy się na planowaniu wdrożeń AI.",
+      "durationMinutes": 4
+    },
+    {
+      "type": "video",
+      "title": "Przykład z branży finansowej",
+      "youtubeUrl": "https://www.youtube.com/watch?v=example"
+    }
+  ]
+}
+```
+
+## Testy
+Zestaw testów weryfikuje obecność kluczowych elementów interfejsu oraz odwołań do API.
+Uruchom je poleceniem:
 ```bash
 npm test
 ```
 
-Polecenie uruchomi zestaw testów sprawdzających obecność kluczowych elementów lekcji,
-w tym sekcji nawigacji, timerów konwersacji oraz narracji głosowej Macieja.
+## Dane przykładowe
+Plik `data/trainings.json` zawiera szkolenie demonstracyjne odtwarzające poprzednią
+lekcję z Maciejem oraz dodatkowy moduł wideo. Możesz go modyfikować ręcznie lub
+rozbudowywać aplikację przez API.
