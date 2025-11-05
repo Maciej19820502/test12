@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lekcja: Ocena projektów AI w finansach</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      font-family: "Inter", "Segoe UI", system-ui, sans-serif;
+    }
+
+    body {
+      margin: 0;
+      background: linear-gradient(135deg, #f2f6ff, #e1ecff 40%, #d8f3ff);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      color: #0f172a;
+    }
+
+    header {
+      padding: 1.5rem clamp(1.5rem, 4vw, 3rem);
+      background: rgba(15, 23, 42, 0.8);
+      color: #f8fafc;
+      box-shadow: 0 10px 25px rgba(15, 23, 42, 0.3);
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      backdrop-filter: blur(10px);
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: clamp(1.4rem, 3vw, 2.4rem);
+    }
+
+    main {
+      flex: 1;
+      display: grid;
+      place-items: center;
+      padding: clamp(1.5rem, 3vw, 3.5rem);
+    }
+
+    .stage-container {
+      width: min(100%, 1100px);
+      background: rgba(248, 250, 252, 0.92);
+      border-radius: 24px;
+      box-shadow: 0 25px 60px rgba(15, 23, 42, 0.18);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    nav.stage-nav {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      background: rgba(15, 23, 42, 0.08);
+      border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+    }
+
+    nav.stage-nav button {
+      appearance: none;
+      border: none;
+      background: transparent;
+      padding: 1rem clamp(0.5rem, 2vw, 1.5rem);
+      font-size: clamp(0.9rem, 2.5vw, 1.1rem);
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.3s ease, color 0.3s ease;
+      color: #0f172a;
+    }
+
+    nav.stage-nav button.active,
+    nav.stage-nav button:hover {
+      background: rgba(59, 130, 246, 0.18);
+      color: #1d4ed8;
+    }
+
+    section.stage {
+      display: none;
+      padding: clamp(1.5rem, 3vw, 3rem);
+      gap: 1.5rem;
+    }
+
+    section.stage.active {
+      display: grid;
+    }
+
+    .stage h2 {
+      margin: 0;
+      font-size: clamp(1.2rem, 3vw, 1.8rem);
+      color: #1e293b;
+    }
+
+    .stage p {
+      line-height: 1.6;
+      margin: 0.8rem 0;
+      font-size: clamp(1rem, 2.4vw, 1.1rem);
+      color: #334155;
+    }
+
+    .stage-card {
+      background: white;
+      border-radius: 20px;
+      padding: clamp(1.25rem, 3vw, 2rem);
+      box-shadow: 0 20px 45px rgba(15, 23, 42, 0.12);
+      border: 1px solid rgba(59, 130, 246, 0.18);
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .stage-card h3 {
+      margin: 0;
+      color: #1d4ed8;
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+    }
+
+    .controls button {
+      border: none;
+      border-radius: 999px;
+      padding: 0.6rem 1.5rem;
+      font-weight: 600;
+      cursor: pointer;
+      background: linear-gradient(135deg, #2563eb, #4f46e5);
+      color: #f8fafc;
+      box-shadow: 0 10px 20px rgba(37, 99, 235, 0.3);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .controls button.secondary {
+      background: rgba(148, 163, 184, 0.35);
+      color: #0f172a;
+      box-shadow: none;
+    }
+
+    .controls button:disabled {
+      background: rgba(148, 163, 184, 0.4);
+      color: rgba(51, 65, 85, 0.7);
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    .controls button:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 15px 25px rgba(37, 99, 235, 0.35);
+    }
+
+    .chat-window {
+      background: rgba(241, 245, 249, 0.8);
+      border-radius: 16px;
+      padding: 1rem;
+      max-height: 360px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      border: 1px solid rgba(15, 23, 42, 0.08);
+    }
+
+    .chat-message {
+      padding: 0.75rem 1rem;
+      border-radius: 16px;
+      max-width: 75%;
+      line-height: 1.5;
+      font-size: 0.95rem;
+      box-shadow: 0 12px 20px rgba(15, 23, 42, 0.12);
+    }
+
+    .chat-message.user {
+      align-self: flex-end;
+      background: linear-gradient(135deg, #4f46e5, #2563eb);
+      color: white;
+      border-bottom-right-radius: 4px;
+    }
+
+    .chat-message.bot {
+      align-self: flex-start;
+      background: white;
+      border-bottom-left-radius: 4px;
+    }
+
+    form.chat-input {
+      display: flex;
+      gap: 0.75rem;
+      margin-top: 0.75rem;
+    }
+
+    form.chat-input input {
+      flex: 1;
+      border: 1px solid rgba(148, 163, 184, 0.6);
+      border-radius: 999px;
+      padding: 0.6rem 1.1rem;
+      font-size: 1rem;
+    }
+
+    form.chat-input button {
+      white-space: nowrap;
+    }
+
+    .timer {
+      font-weight: 600;
+      color: #1d4ed8;
+    }
+
+    .question-box {
+      background: rgba(241, 245, 249, 0.85);
+      padding: 1rem;
+      border-radius: 16px;
+      border: 1px solid rgba(15, 23, 42, 0.08);
+    }
+
+    .question-box h4 {
+      margin: 0;
+      color: #1e293b;
+    }
+
+    .question-box p {
+      margin: 0.75rem 0 0;
+      color: #334155;
+    }
+
+    .answer-form {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      margin-top: 1rem;
+    }
+
+    .answer-form textarea {
+      min-height: 120px;
+      padding: 1rem;
+      border-radius: 16px;
+      border: 1px solid rgba(148, 163, 184, 0.6);
+      font-size: 1rem;
+      resize: vertical;
+    }
+
+    .report {
+      margin-top: 1rem;
+      padding: 1rem;
+      border-radius: 16px;
+      background: #e0f2fe;
+      color: #0c4a6e;
+      border: 1px solid rgba(14, 116, 144, 0.25);
+      font-weight: 600;
+    }
+
+    footer {
+      text-align: center;
+      padding: 1.5rem;
+      font-size: 0.9rem;
+      color: rgba(15, 23, 42, 0.7);
+    }
+
+    @media (max-width: 720px) {
+      nav.stage-nav {
+        grid-template-columns: 1fr;
+      }
+
+      nav.stage-nav button {
+        text-align: left;
+      }
+
+      .controls {
+        flex-direction: column;
+      }
+
+      .chat-window {
+        max-height: 300px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Lekcja współprowadzona przez awatara Macieja</h1>
+  </header>
+  <main>
+    <div class="stage-container">
+      <nav class="stage-nav">
+        <button data-stage="intro" class="active">1. Wprowadzenie głosowe</button>
+        <button data-stage="chat">2. Konwersacja tekstowa</button>
+        <button data-stage="assessment">3. Weryfikacja głosowa</button>
+      </nav>
+
+      <section class="stage active" id="stage-intro">
+        <div class="stage-card">
+          <h2>Plansza 1 &mdash; Głos Macieja</h2>
+          <p>
+            Maciej przedstawia kluczowe elementy oceny projektów AI w sektorze finansowym. Kliknij
+            „Rozpocznij wprowadzenie”, aby wysłuchać pięciominutowej narracji wraz z wypunktowanymi
+            najważniejszymi zagadnieniami.
+          </p>
+          <div class="question-box">
+            <h4>Agenda wprowadzenia</h4>
+            <ul>
+              <li>Powód wdrażania AI i rola strategii biznesowej.</li>
+              <li>Analiza danych, modeli oraz zarządzanie ryzykiem.</li>
+              <li>Aspekty regulacyjne i compliance w Polsce i UE.</li>
+              <li>Metryki sukcesu i pomiar wartości dodanej.</li>
+              <li>Plan utrzymania i operacjonalizacji rozwiązań AI.</li>
+            </ul>
+          </div>
+          <div class="controls">
+            <button id="intro-start">Rozpocznij wprowadzenie</button>
+            <button id="intro-pause" class="secondary" disabled>Wstrzymaj</button>
+            <button id="intro-stop" class="secondary" disabled>Zakończ głos</button>
+          </div>
+          <p id="intro-status">Status: gotowy do rozpoczęcia.</p>
+        </div>
+      </section>
+
+      <section class="stage" id="stage-chat">
+        <div class="stage-card">
+          <h2>Plansza 2 &mdash; Konwersacja z Weryfikatorem projektów AI</h2>
+          <p>
+            Rozpocznij rozmowę tekstową z eksperckim modelem oceniającym projekty AI. Masz do dyspozycji
+            10 minut. W dowolnej chwili możesz zakończyć rozmowę przyciskiem „Zakończ konwersację”.
+          </p>
+          <p class="timer">Pozostały czas: <span id="chat-timer">10:00</span></p>
+          <div class="chat-window" id="chat-window" aria-live="polite"></div>
+          <form class="chat-input" id="chat-form">
+            <input type="text" id="chat-input" placeholder="Napisz wiadomość..." autocomplete="off" required />
+            <button type="submit">Wyślij</button>
+          </form>
+          <div class="controls">
+            <button id="chat-start">Start konwersacji</button>
+            <button id="chat-end" class="secondary" disabled>Zakończ konwersację</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="stage" id="stage-assessment">
+        <div class="stage-card">
+          <h2>Plansza 3 &mdash; Weryfikacja głosowa i raport</h2>
+          <p>
+            Maciej przeprowadzi krótką rozmowę głosową, aby sprawdzić Twoją wiedzę. Odpowiadaj w polu tekstowym,
+            a następnie potwierdzaj odpowiedź. Po zakończeniu otrzymasz zwięzły raport (do 200 znaków) podsumowujący
+            lekcję.
+          </p>
+          <div class="controls">
+            <button id="assessment-start">Rozpocznij weryfikację</button>
+            <button id="assessment-restart" class="secondary" disabled>Powtórz</button>
+          </div>
+          <div class="question-box" id="assessment-box" hidden>
+            <h4 id="assessment-question">Pytanie pojawi się po rozpoczęciu.</h4>
+            <form class="answer-form" id="assessment-form">
+              <textarea id="assessment-answer" placeholder="Wpisz swoją odpowiedź..." required></textarea>
+              <div class="controls">
+                <button type="submit">Przekaż odpowiedź</button>
+              </div>
+            </form>
+          </div>
+          <div class="report" id="assessment-report" hidden></div>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer>
+    &copy; 2024 Maciej &mdash; Lekcja oceny projektów AI w finansach. Zastosowano Web Speech API do narracji i głosowej interakcji.
+  </footer>
+
+  <script>
+    const stages = document.querySelectorAll('section.stage');
+    const navButtons = document.querySelectorAll('nav.stage-nav button');
+
+    navButtons.forEach((button) => {
+      button.addEventListener('click', () => {
+        const target = button.dataset.stage;
+        stages.forEach((stage) => {
+          stage.classList.toggle('active', stage.id === `stage-${target}`);
+        });
+        navButtons.forEach((btn) => btn.classList.toggle('active', btn === button));
+      });
+    });
+
+    // --- Stage 1: Voice introduction ---
+    const introScript = `Cześć, tu Maciej. Dziś pokażę Ci, jak oceniać projekty wdrożeń sztucznej inteligencji w finansach. ` +
+      `Zaczniemy od zdefiniowania celu biznesowego. W finansach technologia nigdy nie jest autonomicznym celem; musi wspierać konkretną przewagę, ` +
+      `np. zmniejszenie kosztów obsługi klienta, skrócenie czasu podejmowania decyzji kredytowych lub zwiększenie wykrywalności nadużyć. ` +
+      `Jeśli strategia biznesowa nie zawiera mierzalnych rezultatów, projekt AI stanie się kosztownym eksperymentem bez sponsorów i bez wsparcia działów operacyjnych. ` +
+      `W kolejnym kroku oceniamy jakość danych: ich źródło, aktualność, reprezentatywność i zgodność z regulacjami. W sektorze finansowym musimy uwzględnić wymogi KNF, ` +
+      `Europejskiego Urzędu Nadzoru Bankowego oraz planowane przepisy EU AI Act. Każda zmienna w modelu powinna mieć uzasadnienie biznesowe i dokumentację pochodzenia. ` +
+      `Następnie przyglądamy się architekturze rozwiązania. Sprawdzamy, czy model jest wytrenowany w sposób powtarzalny, wersjonowany oraz czy istnieją procedury walidacji. ` +
+      `W praktyce oznacza to testy stabilności, testy odporności na drift danych oraz analizę wpływu błędów modelu na klienta. Ważne jest, aby walidacja odbywała się niezależnie ` +
+      `od zespołu tworzącego model i obejmowała zarówno metryki jakościowe, jak i interpretowalność decyzji. Kolejnym elementem jest governance: czy organizacja ma jasno przypisane ` +
+      `role właścicieli procesów, właścicieli danych i modeli, czy istnieją procedury zatwierdzania zmian i planów awaryjnych. Governance obejmuje też edukację użytkowników końcowych, ` +
+      `aby potrafili oni prawidłowo korzystać z rekomendacji modelu i sygnalizować anomalie. Nie zapominajmy o aspekcie finansowym. Weryfikujemy koszty pozyskania danych, ` +
+      `utrzymania infrastruktury i zespołu analitycznego. Budujemy model TCO, czyli całkowitego kosztu posiadania, i porównujemy go z oczekiwanymi korzyściami finansowymi. ` +
+      `Przy ocenie wartości biznesowej używamy metryk typu ROI, NPV czy payback period, ale także metryk jakościowych, jak poprawa satysfakcji klienta czy skrócenie czasu audytu. ` +
+      `Kiedy plan wygląda obiecująco, projektujemy mechanizmy monitorowania po wdrożeniu. Wprowadzamy dashboardy pokazujące jakość predykcji, drift danych i poziom zgodności z politykami. ` +
+      `Definiujemy scenariusze eskalacji, automatyczne alerty oraz harmonogram przeglądów modelu. Na koniec przygotowujemy plan komunikacji: raportujemy do zarządu, jednostek ryzyka ` +
+      `i regulatora, a także zapewniamy klientom przejrzystość decyzji. Właśnie w ten sposób budujemy zaufanie do sztucznej inteligencji w finansach.`;
+
+    const introStart = document.getElementById('intro-start');
+    const introPause = document.getElementById('intro-pause');
+    const introStop = document.getElementById('intro-stop');
+    const introStatus = document.getElementById('intro-status');
+    let introUtterance = null;
+
+    function speakText(text, onend) {
+      if (!('speechSynthesis' in window)) {
+        introStatus.textContent = 'Status: przeglądarka nie obsługuje syntezy mowy.';
+        return;
+      }
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'pl-PL';
+      utterance.rate = 0.93;
+      utterance.pitch = 1.05;
+      utterance.onend = onend;
+      window.speechSynthesis.speak(utterance);
+      return utterance;
+    }
+
+    introStart.addEventListener('click', () => {
+      introStart.disabled = true;
+      introPause.disabled = false;
+      introStop.disabled = false;
+      introStatus.textContent = 'Status: Maciej prowadzi wprowadzenie...';
+      introUtterance = speakText(introScript, () => {
+        introStatus.textContent = 'Status: wprowadzenie zakończone.';
+        introStart.disabled = false;
+        introPause.disabled = true;
+        introStop.disabled = true;
+      });
+    });
+
+    introPause.addEventListener('click', () => {
+      if (!introUtterance) return;
+      if (speechSynthesis.paused) {
+        speechSynthesis.resume();
+        introPause.textContent = 'Wstrzymaj';
+        introStatus.textContent = 'Status: Maciej kontynuuje narrację.';
+      } else {
+        speechSynthesis.pause();
+        introPause.textContent = 'Wznów';
+        introStatus.textContent = 'Status: narracja wstrzymana.';
+      }
+    });
+
+    introStop.addEventListener('click', () => {
+      if (!introUtterance) return;
+      speechSynthesis.cancel();
+      introUtterance = null;
+      introStart.disabled = false;
+      introPause.disabled = true;
+      introPause.textContent = 'Wstrzymaj';
+      introStop.disabled = true;
+      introStatus.textContent = 'Status: wprowadzenie zatrzymane.';
+    });
+
+    // --- Stage 2: Chat ---
+    const chatWindow = document.getElementById('chat-window');
+    const chatForm = document.getElementById('chat-form');
+    const chatInput = document.getElementById('chat-input');
+    const chatStart = document.getElementById('chat-start');
+    const chatEnd = document.getElementById('chat-end');
+    const chatTimerLabel = document.getElementById('chat-timer');
+    let chatActive = false;
+    let chatTimer = null;
+    let chatSecondsRemaining = 600;
+    let chatTurn = 0;
+
+    function appendMessage(author, text) {
+      const message = document.createElement('div');
+      message.className = `chat-message ${author}`;
+      message.textContent = text;
+      chatWindow.appendChild(message);
+      chatWindow.scrollTop = chatWindow.scrollHeight;
+    }
+
+    function formatTime(seconds) {
+      const mm = String(Math.floor(seconds / 60)).padStart(2, '0');
+      const ss = String(seconds % 60).padStart(2, '0');
+      return `${mm}:${ss}`;
+    }
+
+    function updateTimer() {
+      chatTimerLabel.textContent = formatTime(chatSecondsRemaining);
+      if (chatSecondsRemaining <= 0) {
+        concludeChat('Czas minął. Zapisz najważniejsze wnioski i przejdź do kolejnej planszy.');
+      } else {
+        chatSecondsRemaining -= 1;
+      }
+    }
+
+    function startTimer() {
+      chatTimer = setInterval(updateTimer, 1000);
+    }
+
+    function stopTimer() {
+      if (chatTimer) {
+        clearInterval(chatTimer);
+        chatTimer = null;
+      }
+    }
+
+    function resetChat() {
+      chatWindow.innerHTML = '';
+      chatSecondsRemaining = 600;
+      chatTimerLabel.textContent = '10:00';
+      chatTurn = 0;
+    }
+
+    function generateVerifierReply(message, turn) {
+      const lower = message.toLowerCase();
+      const insights = [
+        'Pamiętaj o mapowaniu procesów kończących się na wyniku finansowym, aby wykazać związek z P&L.',
+        'Zapisz, jakie zbiory danych wymagają anonimizacji i kto odpowiada za zgody klientów.',
+        'Włącz w plan działania jednostkę bezpieczeństwa, żeby ocenić odporność modelu na ataki.',
+        'Zaadresuj wymagania KNF dotyczące śladu audytowego i możliwości wyjaśnienia decyzji.',
+        'Upewnij się, że po wdrożeniu monitorujesz drift danych i masz progi alarmowe.',
+      ];
+
+      if (lower.includes('ryzy') || lower.includes('compliance') || lower.includes('regulac')) {
+        return 'Skup się na matrycy ryzyka: regulator oczekuje przypisania właścicieli, planów awaryjnych oraz dokumentu wpływu na klienta.';
+      }
+      if (lower.includes('dane') || lower.includes('data')) {
+        return 'Opisz cykl życia danych: źródło, walidacja jakości, proces ETL i mechanizmy kontroli dostępu. To fundament akceptacji projektu.';
+      }
+      if (lower.includes('roi') || lower.includes('npv') || lower.includes('warto') || lower.includes('koszt')) {
+        return 'Zadbaj o analizę finansową: zestaw koszty utrzymania modelu z oczekiwanymi korzyściami i przedstaw scenariusze pesymistyczne.';
+      }
+      if (lower.includes('model') || lower.includes('algorytm') || lower.includes('uczen')) {
+        return 'Weryfikator zaleca testy niezależne: walidacja, backtesting, ocena stronniczości oraz kontrola zmian hipotez modelowych.';
+      }
+      return insights[turn % insights.length];
+    }
+
+    function startChat() {
+      if (chatActive) return;
+      resetChat();
+      chatActive = true;
+      chatStart.disabled = true;
+      chatEnd.disabled = false;
+      chatInput.disabled = false;
+      chatForm.querySelector('button[type="submit"]').disabled = false;
+      appendMessage('bot', 'Witaj, tu Weryfikator Projektów AI. Opisz proszę projekt lub wyzwanie, które mam zweryfikować.');
+      startTimer();
+    }
+
+    function concludeChat(reason) {
+      chatActive = false;
+      stopTimer();
+      chatStart.disabled = false;
+      chatEnd.disabled = true;
+      chatInput.disabled = true;
+      chatForm.querySelector('button[type="submit"]').disabled = true;
+      appendMessage('bot', reason);
+    }
+
+    chatStart.addEventListener('click', startChat);
+
+    chatEnd.addEventListener('click', () => {
+      concludeChat('Dziękuję za rozmowę. Zachowaj notatki i przejdź do etapu weryfikacji głosowej.');
+    });
+
+    chatForm.addEventListener('submit', (event) => {
+      event.preventDefault();
+      if (!chatActive) return;
+      const message = chatInput.value.trim();
+      if (!message) return;
+      chatInput.value = '';
+      appendMessage('user', message);
+      const reply = generateVerifierReply(message, chatTurn++);
+      setTimeout(() => appendMessage('bot', reply), 350);
+    });
+
+    chatInput.disabled = true;
+    chatForm.querySelector('button[type="submit"]').disabled = true;
+
+    // --- Stage 3: Voice assessment ---
+    const assessmentStart = document.getElementById('assessment-start');
+    const assessmentRestart = document.getElementById('assessment-restart');
+    const assessmentBox = document.getElementById('assessment-box');
+    const assessmentQuestion = document.getElementById('assessment-question');
+    const assessmentForm = document.getElementById('assessment-form');
+    const assessmentAnswer = document.getElementById('assessment-answer');
+    const assessmentReport = document.getElementById('assessment-report');
+
+    const assessmentQuestions = [
+      {
+        text: 'Wymień trzy najważniejsze kryteria, które oceniasz przed wdrożeniem modelu AI w banku.',
+        keywords: ['dane', 'ryzy', 'cel', 'governance', 'compliance', 'biznes'],
+      },
+      {
+        text: 'Jak monitorujesz działanie modelu po wdrożeniu i jakie sygnały ostrzegawcze obserwujesz?',
+        keywords: ['drift', 'monitor', 'alert', 'metryk', 'audyt', 'raport'],
+      },
+      {
+        text: 'Które przepisy lub wytyczne regulatora musisz wziąć pod uwagę przy projekcie AI w finansach?',
+        keywords: ['knf', 'eba', 'ai act', 'gdpr', 'audyt', 'regulator'],
+      },
+    ];
+
+    let assessmentIndex = 0;
+    let assessmentScore = 0;
+    let assessmentRunning = false;
+
+    function speakMaciej(text) {
+      if (!('speechSynthesis' in window)) return;
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'pl-PL';
+      utterance.rate = 0.97;
+      utterance.pitch = 1.0;
+      speechSynthesis.speak(utterance);
+    }
+
+    function startAssessment() {
+      assessmentIndex = 0;
+      assessmentScore = 0;
+      assessmentRunning = true;
+      assessmentReport.hidden = true;
+      assessmentReport.textContent = '';
+      assessmentBox.hidden = false;
+      assessmentStart.disabled = true;
+      assessmentRestart.disabled = false;
+      assessmentAnswer.value = '';
+      askNextQuestion();
+    }
+
+    function restartAssessment() {
+      speechSynthesis.cancel();
+      startAssessment();
+    }
+
+    function askNextQuestion() {
+      if (assessmentIndex >= assessmentQuestions.length) {
+        finishAssessment();
+        return;
+      }
+      const current = assessmentQuestions[assessmentIndex];
+      assessmentQuestion.textContent = current.text;
+      assessmentAnswer.focus();
+      speakMaciej(`Pytanie ${assessmentIndex + 1}. ${current.text}`);
+    }
+
+    function evaluateAnswer(answer, keywords) {
+      const lower = answer.toLowerCase();
+      let hits = 0;
+      keywords.forEach((keyword) => {
+        if (lower.includes(keyword)) {
+          hits += 1;
+        }
+      });
+      return hits >= 2 ? 1 : hits >= 1 ? 0.5 : 0;
+    }
+
+    function finishAssessment() {
+      assessmentRunning = false;
+      assessmentBox.hidden = true;
+      assessmentStart.disabled = false;
+      assessmentRestart.disabled = true;
+      const rounded = Math.round(assessmentScore);
+      const reportText = rounded >= 3
+        ? 'Raport: 3/3 trafnych odpowiedzi. Świetne przygotowanie do oceny projektów.'
+        : rounded === 2
+          ? 'Raport: 2/3 trafnych odpowiedzi. Wzmocnij jeszcze monitorowanie i zgodność.'
+          : 'Raport: 1/3 trafnych odpowiedzi. Przećwicz analizę danych i regulacji.';
+      assessmentReport.textContent = reportText;
+      assessmentReport.hidden = false;
+      speakMaciej(`${reportText} Dziękuję za udział w lekcji.`);
+    }
+
+    assessmentForm.addEventListener('submit', (event) => {
+      event.preventDefault();
+      if (!assessmentRunning) return;
+      const answer = assessmentAnswer.value.trim();
+      if (!answer) return;
+      const current = assessmentQuestions[assessmentIndex];
+      assessmentScore += evaluateAnswer(answer, current.keywords);
+      assessmentIndex += 1;
+      assessmentAnswer.value = '';
+      if (assessmentIndex < assessmentQuestions.length) {
+        speakMaciej('Dziękuję. Oto kolejne pytanie.');
+      }
+      askNextQuestion();
+    });
+
+    assessmentStart.addEventListener('click', startAssessment);
+    assessmentRestart.addEventListener('click', restartAssessment);
+  </script>
+</body>
+</html>
