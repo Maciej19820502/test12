@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Studio szkoleń AI</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      font-family: "Inter", "Segoe UI", system-ui, sans-serif;
+      --bg: #f1f5f9;
+      --surface: rgba(255, 255, 255, 0.9);
+      --primary: #1d4ed8;
+      --primary-dark: #1e3a8a;
+      --text: #0f172a;
+      --muted: #64748b;
+      --border: rgba(148, 163, 184, 0.3);
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #f8fbff, #e0f2fe);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      padding: 1.5rem clamp(1.5rem, 4vw, 3.5rem);
+      background: linear-gradient(135deg, rgba(29, 78, 216, 0.88), rgba(37, 99, 235, 0.8));
+      color: #f8fafc;
+      box-shadow: 0 15px 40px rgba(29, 78, 216, 0.35);
+      position: sticky;
+      top: 0;
+      z-index: 30;
+    }
+
+    header h1 {
+      margin: 0 0 0.25rem;
+      font-size: clamp(1.6rem, 4vw, 2.6rem);
+      font-weight: 700;
+    }
+
+    header p {
+      margin: 0;
+      font-size: clamp(0.95rem, 2.2vw, 1.1rem);
+      color: rgba(248, 250, 252, 0.85);
+    }
+
+    main {
+      flex: 1;
+      padding: clamp(1.5rem, 4vw, 3.5rem);
+      display: grid;
+      grid-template-columns: minmax(0, 3fr) minmax(260px, 1.2fr);
+      gap: clamp(1.5rem, 3vw, 2.5rem);
+      align-items: start;
+    }
+
+    @media (max-width: 1080px) {
+      main {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .panel {
+      background: var(--surface);
+      border-radius: 28px;
+      box-shadow: 0 22px 55px rgba(15, 23, 42, 0.12);
+      border: 1px solid var(--border);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .panel-heading {
+      padding: 1.5rem clamp(1.4rem, 3vw, 2.2rem);
+      border-bottom: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.65);
+    }
+
+    .panel-heading h2 {
+      margin: 0;
+      font-size: clamp(1.1rem, 3vw, 1.6rem);
+    }
+
+    .panel-body {
+      padding: clamp(1.5rem, 3vw, 2.5rem);
+      display: grid;
+      gap: 1.5rem;
+    }
+
+    .panel-card {
+      background: rgba(255, 255, 255, 0.8);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: clamp(1.2rem, 3vw, 1.8rem);
+      box-shadow: 0 14px 30px rgba(15, 23, 42, 0.08);
+      display: grid;
+      gap: 1rem;
+    }
+
+    label {
+      font-weight: 600;
+      color: var(--muted);
+      display: block;
+      font-size: 0.95rem;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    textarea,
+    select,
+    input[type="url"] {
+      width: 100%;
+      padding: 0.75rem 0.9rem;
+      border-radius: 14px;
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      background: rgba(248, 250, 252, 0.9);
+      font-size: 0.95rem;
+      box-sizing: border-box;
+    }
+
+    textarea {
+      min-height: 100px;
+      resize: vertical;
+    }
+
+    button {
+      border: none;
+      border-radius: 999px;
+      padding: 0.75rem 1.6rem;
+      background: linear-gradient(135deg, var(--primary), #6366f1);
+      color: #f8fafc;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 15px 25px rgba(37, 99, 235, 0.35);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 18px 30px rgba(37, 99, 235, 0.4);
+    }
+
+    button.secondary {
+      background: rgba(15, 23, 42, 0.06);
+      color: var(--primary-dark);
+      box-shadow: none;
+    }
+
+    button.danger {
+      background: linear-gradient(135deg, #ef4444, #f97316);
+      box-shadow: 0 15px 25px rgba(239, 68, 68, 0.35);
+    }
+
+    .stage-wrapper {
+      display: grid;
+      gap: 1rem;
+    }
+
+    .stage-nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+    }
+
+    .stage-nav button {
+      border-radius: 999px;
+      padding: 0.65rem 1.4rem;
+      background: rgba(37, 99, 235, 0.1);
+      color: var(--primary-dark);
+      box-shadow: none;
+    }
+
+    .stage-nav button.active,
+    .stage-nav button:hover {
+      background: linear-gradient(135deg, var(--primary), #4338ca);
+      color: #f8fafc;
+      box-shadow: 0 10px 18px rgba(37, 99, 235, 0.25);
+    }
+
+    .stage-card {
+      display: grid;
+      gap: 1rem;
+      background: rgba(248, 250, 252, 0.95);
+      border-radius: 22px;
+      border: 1px solid var(--border);
+      padding: clamp(1.4rem, 3vw, 2.2rem);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65);
+    }
+
+    .stage-card h3 {
+      margin: 0;
+      font-size: 1.25rem;
+      color: var(--primary-dark);
+    }
+
+    .stage-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+
+    .speech-controls,
+    .chat-controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.6rem;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.35rem 0.9rem;
+      background: rgba(37, 99, 235, 0.12);
+      border-radius: 999px;
+      font-size: 0.85rem;
+      color: var(--primary-dark);
+      font-weight: 600;
+    }
+
+    .prompt-box {
+      background: rgba(15, 23, 42, 0.04);
+      border: 1px dashed rgba(37, 99, 235, 0.25);
+      border-radius: 16px;
+      padding: 1rem;
+      font-size: 0.95rem;
+      line-height: 1.5;
+      color: var(--muted);
+      white-space: pre-line;
+    }
+
+    .chat-window {
+      background: rgba(15, 23, 42, 0.03);
+      border-radius: 16px;
+      border: 1px solid rgba(148, 163, 184, 0.3);
+      max-height: 320px;
+      overflow-y: auto;
+      padding: 1rem;
+      display: grid;
+      gap: 0.75rem;
+    }
+
+    .chat-message {
+      display: grid;
+      gap: 0.25rem;
+    }
+
+    .chat-message strong {
+      font-size: 0.9rem;
+      color: var(--primary-dark);
+    }
+
+    .chat-input {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    .chat-input input[type="text"] {
+      flex: 1;
+      min-width: 200px;
+    }
+
+    .timer {
+      font-family: "JetBrains Mono", "Courier New", monospace;
+      font-size: 1.1rem;
+      padding: 0.45rem 0.8rem;
+      border-radius: 12px;
+      background: rgba(15, 23, 42, 0.05);
+      color: var(--primary-dark);
+      font-weight: 600;
+    }
+
+    .summary-area textarea {
+      min-height: 120px;
+    }
+
+    .builder-step {
+      border: 1px dashed rgba(37, 99, 235, 0.2);
+      border-radius: 18px;
+      padding: 1rem;
+      display: grid;
+      gap: 0.75rem;
+      position: relative;
+    }
+
+    .builder-step h3 {
+      margin: 0;
+      color: var(--primary-dark);
+      font-size: 1.05rem;
+    }
+
+    .builder-step button.remove-step {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      background: rgba(239, 68, 68, 0.14);
+      color: #ef4444;
+      box-shadow: none;
+    }
+
+    .status-message {
+      font-size: 0.95rem;
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    iframe {
+      width: 100%;
+      min-height: 320px;
+      border: none;
+      border-radius: 18px;
+      box-shadow: 0 12px 25px rgba(15, 23, 42, 0.12);
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Studio szkoleń AI</h1>
+    <p>Buduj własne scenariusze z modułów głosowych, tekstowych i materiałów wideo. Szkolenie Macieja służy jako przykład.</p>
+  </header>
+  <main>
+    <section class="panel">
+      <div class="panel-heading">
+        <h2>Przegląd szkolenia</h2>
+      </div>
+      <div class="panel-body">
+        <div class="panel-card">
+          <div class="field">
+            <label for="training-picker">Dostępne szkolenia</label>
+            <select id="training-picker"></select>
+          </div>
+          <p id="training-description" class="muted"></p>
+        </div>
+        <div class="panel-card stage-wrapper">
+          <nav class="stage-nav" id="stage-nav" aria-label="Etapy szkolenia"></nav>
+          <div id="stage-content"></div>
+        </div>
+      </div>
+    </section>
+    <aside class="panel">
+      <div class="panel-heading">
+        <h2>Konfigurator szkolenia</h2>
+      </div>
+      <div class="panel-body">
+        <p>Dodaj moduły i zapisz nowe szkolenie. Wszystkie pola oznaczone * są wymagane.</p>
+        <form id="builder-form" class="panel-card">
+          <div>
+            <label for="builder-title">Tytuł szkolenia *</label>
+            <input id="builder-title" name="title" type="text" required />
+          </div>
+          <div>
+            <label for="builder-description">Opis</label>
+            <textarea id="builder-description" name="description" placeholder="Krótki opis szkolenia"></textarea>
+          </div>
+          <div class="builder-actions">
+            <p><strong>Dodaj moduł:</strong></p>
+            <div class="speech-controls">
+              <button type="button" class="secondary" data-add-step="voice">Konwersacja głosowa</button>
+              <button type="button" class="secondary" data-add-step="text">Konwersacja tekstowa</button>
+              <button type="button" class="secondary" data-add-step="video">Materiał wideo</button>
+            </div>
+          </div>
+          <div id="builder-steps" class="panel-card" style="gap: 1.25rem;"></div>
+          <button type="submit">Zapisz szkolenie</button>
+          <p id="builder-status" class="status-message" role="status"></p>
+        </form>
+      </div>
+    </aside>
+  </main>
+  <script>
+    const state = {
+      trainings: [],
+      activeTrainingId: null,
+      activeStepIndex: 0,
+      cleanup: null,
+    };
+
+    const elements = {
+      trainingPicker: document.getElementById('training-picker'),
+      trainingDescription: document.getElementById('training-description'),
+      stageNav: document.getElementById('stage-nav'),
+      stageContent: document.getElementById('stage-content'),
+      builderForm: document.getElementById('builder-form'),
+      builderSteps: document.getElementById('builder-steps'),
+      builderStatus: document.getElementById('builder-status'),
+    };
+
+    async function fetchTrainings() {
+      const response = await fetch('/api/trainings');
+      if (!response.ok) {
+        throw new Error('Nie udało się wczytać listy szkoleń');
+      }
+      const data = await response.json();
+      state.trainings = data.trainings || [];
+      populateTrainingPicker();
+    }
+
+    function populateTrainingPicker() {
+      elements.trainingPicker.innerHTML = '';
+      state.trainings.forEach((training, index) => {
+        const option = document.createElement('option');
+        option.value = training.id;
+        option.textContent = training.title;
+        if (!state.activeTrainingId && index === 0) {
+          state.activeTrainingId = training.id;
+        }
+        if (training.id === state.activeTrainingId) {
+          option.selected = true;
+        }
+        elements.trainingPicker.appendChild(option);
+      });
+      renderTrainingDetails();
+    }
+
+    function renderTrainingDetails() {
+      const training = state.trainings.find((item) => item.id === state.activeTrainingId);
+      if (!training) {
+        elements.trainingDescription.textContent = 'Brak wybranego szkolenia.';
+        elements.stageNav.innerHTML = '';
+        elements.stageContent.innerHTML = '';
+        return;
+      }
+      elements.trainingDescription.textContent = training.description || '';
+      renderStageNav(training);
+      renderActiveStage(training);
+    }
+
+    function renderStageNav(training) {
+      elements.stageNav.innerHTML = '';
+      training.steps.forEach((step, index) => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.dataset.stageId = step.id;
+        button.textContent = `${index + 1}. ${step.title}`;
+        if (index === state.activeStepIndex) {
+          button.classList.add('active');
+        }
+        button.addEventListener('click', () => {
+          state.activeStepIndex = index;
+          renderStageNav(training);
+          renderActiveStage(training);
+        });
+        elements.stageNav.appendChild(button);
+      });
+    }
+
+    function renderActiveStage(training) {
+      if (typeof state.cleanup === 'function') {
+        state.cleanup();
+      }
+      if (window.speechSynthesis) {
+        window.speechSynthesis.cancel();
+      }
+      const step = training.steps[state.activeStepIndex] || training.steps[0];
+      if (!step) {
+        elements.stageContent.innerHTML = '<p>Brak kroków w tym szkoleniu.</p>';
+        return;
+      }
+      const { element, cleanup } = buildStageElement(step);
+      state.cleanup = cleanup;
+      elements.stageContent.innerHTML = '';
+      elements.stageContent.appendChild(element);
+      const buttons = elements.stageNav.querySelectorAll('button');
+      buttons.forEach((button) => button.classList.remove('active'));
+      const active = buttons[state.activeStepIndex];
+      if (active) {
+        active.classList.add('active');
+      }
+    }
+
+    function buildStageElement(step) {
+      switch (step.type) {
+        case 'voice':
+          return buildVoiceStage(step);
+        case 'text':
+          return buildTextStage(step);
+        case 'video':
+          return buildVideoStage(step);
+        default:
+          return {
+            element: document.createElement('div'),
+            cleanup: null,
+          };
+      }
+    }
+
+    function buildVoiceStage(step) {
+      const container = document.createElement('div');
+      container.className = 'stage-card voice-stage';
+      container.innerHTML = `
+        <h3>${step.title}</h3>
+        <div class="stage-meta">
+          <span class="badge">Konwersacja głosowa</span>
+          <span class="badge">Czas: ${step.durationMinutes || 5} min</span>
+        </div>
+        <p>${step.prompt}</p>
+        <div class="prompt-box">${step.script}</div>
+        <div class="speech-controls">
+          <button type="button" data-action="speak">Odtwórz narrację</button>
+          <button type="button" data-action="pause" class="secondary">Wstrzymaj</button>
+          <button type="button" data-action="resume" class="secondary">Wznów</button>
+          <button type="button" data-action="stop" class="secondary">Zatrzymaj</button>
+        </div>
+      `;
+
+      if (step.summaryLimit) {
+        const summary = document.createElement('div');
+        summary.className = 'summary-area';
+        summary.innerHTML = `
+          <label for="summary-text">Raport do ${step.summaryLimit} znaków</label>
+          <textarea id="summary-text" maxlength="${step.summaryLimit}"></textarea>
+          <small>Pozostało <span id="summary-left">${step.summaryLimit}</span> znaków.</small>
+        `;
+        container.appendChild(summary);
+        const summaryText = summary.querySelector('#summary-text');
+        const counter = summary.querySelector('#summary-left');
+        summaryText.addEventListener('input', () => {
+          const remaining = step.summaryLimit - summaryText.value.length;
+          counter.textContent = remaining;
+        });
+      }
+
+      let utterance = null;
+      const controls = container.querySelectorAll('.speech-controls button');
+      controls.forEach((button) => {
+        button.addEventListener('click', () => {
+          const action = button.dataset.action;
+          if (!('speechSynthesis' in window)) {
+            alert('Twoja przeglądarka nie obsługuje syntezy mowy.');
+            return;
+          }
+          if (action === 'speak') {
+            if (utterance) {
+              window.speechSynthesis.cancel();
+            }
+            utterance = new SpeechSynthesisUtterance(step.script);
+            utterance.lang = 'pl-PL';
+            window.speechSynthesis.speak(utterance);
+          } else if (action === 'pause') {
+            window.speechSynthesis.pause();
+          } else if (action === 'resume') {
+            window.speechSynthesis.resume();
+          } else if (action === 'stop') {
+            window.speechSynthesis.cancel();
+          }
+        });
+      });
+
+      return {
+        element: container,
+        cleanup: () => {
+          if (utterance) {
+            window.speechSynthesis.cancel();
+            utterance = null;
+          }
+        },
+      };
+    }
+
+    function buildTextStage(step) {
+      const container = document.createElement('div');
+      container.className = 'stage-card text-stage';
+      container.innerHTML = `
+        <h3>${step.title}</h3>
+        <div class="stage-meta">
+          <span class="badge">Konwersacja tekstowa</span>
+          <span class="badge">Czas: ${step.durationMinutes || 10} min</span>
+        </div>
+        <p>${step.prompt}</p>
+        <div class="prompt-box">Model referencyjny: <a href="${step.modelUrl || '#'}" target="_blank" rel="noopener">${step.modelUrl || 'brak linku'}</a></div>
+        <div class="chat-controls">
+          <button type="button" data-action="start">Start</button>
+          <button type="button" data-action="end" class="secondary">Zakończ</button>
+          <span class="timer" id="chat-timer">${String(step.durationMinutes || 10).padStart(2, '0')}:00</span>
+        </div>
+        <div class="chat-window" id="chat-window"></div>
+        <div class="chat-input">
+          <input type="text" id="chat-input" placeholder="Twoja wiadomość" disabled />
+          <button type="button" data-action="send" class="secondary">Wyślij</button>
+        </div>
+      `;
+
+      const chatWindow = container.querySelector('#chat-window');
+      const input = container.querySelector('#chat-input');
+      const sendButton = container.querySelector('button[data-action="send"]');
+      const startButton = container.querySelector('button[data-action="start"]');
+      const endButton = container.querySelector('button[data-action="end"]');
+      const timerDisplay = container.querySelector('#chat-timer');
+
+      let timerId = null;
+      let remainingSeconds = (step.durationMinutes || 10) * 60;
+      let replyIndex = 0;
+      let sessionActive = false;
+
+      function appendMessage(author, text) {
+        const item = document.createElement('div');
+        item.className = 'chat-message';
+        item.innerHTML = `<strong>${author}</strong><span>${text}</span>`;
+        chatWindow.appendChild(item);
+        chatWindow.scrollTop = chatWindow.scrollHeight;
+      }
+
+      function updateTimerDisplay() {
+        const minutes = Math.floor(remainingSeconds / 60).toString().padStart(2, '0');
+        const seconds = Math.floor(remainingSeconds % 60).toString().padStart(2, '0');
+        timerDisplay.textContent = `${minutes}:${seconds}`;
+      }
+
+      function stopSession() {
+        sessionActive = false;
+        input.disabled = true;
+        startButton.disabled = false;
+        endButton.disabled = true;
+        sendButton.disabled = true;
+        if (timerId) {
+          clearInterval(timerId);
+          timerId = null;
+        }
+      }
+
+      startButton.addEventListener('click', () => {
+        if (sessionActive) return;
+        sessionActive = true;
+        replyIndex = 0;
+        remainingSeconds = (step.durationMinutes || 10) * 60;
+        chatWindow.innerHTML = '';
+        appendMessage(step.partnerName || 'Ekspert', step.openingMessage || 'Witaj!');
+        input.disabled = false;
+        input.focus();
+        startButton.disabled = true;
+        endButton.disabled = false;
+        sendButton.disabled = false;
+        updateTimerDisplay();
+        timerId = setInterval(() => {
+          remainingSeconds -= 1;
+          if (remainingSeconds <= 0) {
+            remainingSeconds = 0;
+            updateTimerDisplay();
+            stopSession();
+            appendMessage('System', 'Czas minął.');
+            return;
+          }
+          updateTimerDisplay();
+        }, 1000);
+      });
+
+      endButton.addEventListener('click', () => {
+        appendMessage('System', 'Sesja została zakończona przyciskiem.');
+        stopSession();
+      });
+
+      sendButton.addEventListener('click', () => {
+        if (!sessionActive || !input.value.trim()) return;
+        appendMessage('Ty', input.value.trim());
+        input.value = '';
+        const reply = step.autoReplies?.[replyIndex] || 'Dziękuję za odpowiedź.';
+        appendMessage(step.partnerName || 'Ekspert', reply);
+        replyIndex = Math.min(replyIndex + 1, (step.autoReplies?.length || 1) - 1);
+      });
+
+      input.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') {
+          event.preventDefault();
+          sendButton.click();
+        }
+      });
+
+      stopSession();
+
+      return {
+        element: container,
+        cleanup: () => {
+          if (timerId) {
+            clearInterval(timerId);
+          }
+        },
+      };
+    }
+
+    function buildVideoStage(step) {
+      const container = document.createElement('div');
+      container.className = 'stage-card video-stage';
+      const url = step.youtubeUrl || '';
+      let embedUrl = '';
+      if (url.includes('youtube.com/watch')) {
+        const videoId = new URL(url).searchParams.get('v');
+        embedUrl = `https://www.youtube.com/embed/${videoId}`;
+      } else if (url.includes('youtu.be/')) {
+        embedUrl = `https://www.youtube.com/embed/${url.split('/').pop()}`;
+      }
+
+      container.innerHTML = `
+        <h3>${step.title}</h3>
+        <div class="stage-meta">
+          <span class="badge">Materiał wideo</span>
+        </div>
+        <p>${step.description || 'Uruchom materiał wideo jako część szkolenia.'}</p>
+        ${embedUrl ? `<iframe src="${embedUrl}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen title="${step.title}"></iframe>` : `<p>Podaj poprawny link do YouTube, aby wyświetlić materiał.</p>`}
+      `;
+
+      return { element: container, cleanup: null };
+    }
+
+    function createStepForm(type) {
+      const wrapper = document.createElement('div');
+      wrapper.className = 'builder-step';
+      wrapper.dataset.type = type;
+      const remove = document.createElement('button');
+      remove.type = 'button';
+      remove.className = 'remove-step';
+      remove.textContent = 'Usuń';
+      remove.addEventListener('click', () => wrapper.remove());
+
+      if (type === 'voice') {
+        wrapper.innerHTML += `
+          <h3>Konwersacja głosowa</h3>
+          <label>Tytuł *</label>
+          <input type="text" name="title" required />
+          <label>Prompt *</label>
+          <textarea name="prompt" required></textarea>
+          <label>Tekst narracji *</label>
+          <textarea name="script" required></textarea>
+          <label>Czas trwania (min) *</label>
+          <input type="number" name="duration" min="1" value="5" required />
+          <label>Limit raportu (znaki)</label>
+          <input type="number" name="summaryLimit" min="50" step="10" placeholder="np. 200" />
+        `;
+      } else if (type === 'text') {
+        wrapper.innerHTML += `
+          <h3>Konwersacja tekstowa</h3>
+          <label>Tytuł *</label>
+          <input type="text" name="title" required />
+          <label>Prompt *</label>
+          <textarea name="prompt" required></textarea>
+          <label>Nazwa partnera *</label>
+          <input type="text" name="partner" required />
+          <label>Wiadomość powitalna *</label>
+          <textarea name="opening" required></textarea>
+          <label>Odpowiedzi modelu (jedna na linię)</label>
+          <textarea name="replies" placeholder="Pierwsza odpowiedź\nDruga odpowiedź"></textarea>
+          <label>Czas trwania (min) *</label>
+          <input type="number" name="duration" min="1" value="10" required />
+          <label>Link do modelu GPT</label>
+          <input type="url" name="modelUrl" placeholder="https://..." />
+        `;
+      } else if (type === 'video') {
+        wrapper.innerHTML += `
+          <h3>Materiał wideo</h3>
+          <label>Tytuł *</label>
+          <input type="text" name="title" required />
+          <label>Opis</label>
+          <textarea name="description"></textarea>
+          <label>Link do YouTube *</label>
+          <input type="url" name="youtubeUrl" placeholder="https://www.youtube.com/watch?v=..." required />
+        `;
+      }
+
+      wrapper.appendChild(remove);
+      return wrapper;
+    }
+
+    elements.builderForm.addEventListener('click', (event) => {
+      const target = event.target;
+      if (target.dataset.add-step) {
+        const type = target.dataset.addStep;
+        const stepForm = createStepForm(type);
+        elements.builderSteps.appendChild(stepForm);
+      }
+    });
+
+    elements.builderForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const formData = new FormData(elements.builderForm);
+      const title = formData.get('title');
+      const description = formData.get('description');
+      const stepElements = Array.from(elements.builderSteps.querySelectorAll('.builder-step'));
+      if (!title) {
+        elements.builderStatus.textContent = 'Podaj tytuł szkolenia.';
+        return;
+      }
+      if (stepElements.length === 0) {
+        elements.builderStatus.textContent = 'Dodaj co najmniej jeden moduł.';
+        return;
+      }
+
+      const steps = [];
+      try {
+        stepElements.forEach((stepEl) => {
+          const type = stepEl.dataset.type;
+          if (type === 'voice') {
+            const title = stepEl.querySelector('input[name="title"]').value.trim();
+            const prompt = stepEl.querySelector('textarea[name="prompt"]').value.trim();
+            const script = stepEl.querySelector('textarea[name="script"]').value.trim();
+            const duration = Number(stepEl.querySelector('input[name="duration"]').value);
+            const summaryLimit = stepEl.querySelector('input[name="summaryLimit"]').value;
+            if (!title || !prompt || !script || !duration) {
+              throw new Error('Uzupełnij wszystkie wymagane pola modułu głosowego.');
+            }
+            const voiceStep = {
+              type: 'voice',
+              title,
+              prompt,
+              script,
+              durationMinutes: duration,
+            };
+            if (summaryLimit) {
+              voiceStep.summaryLimit = Number(summaryLimit);
+            }
+            steps.push(voiceStep);
+          } else if (type === 'text') {
+            const title = stepEl.querySelector('input[name="title"]').value.trim();
+            const prompt = stepEl.querySelector('textarea[name="prompt"]').value.trim();
+            const partnerName = stepEl.querySelector('input[name="partner"]').value.trim();
+            const openingMessage = stepEl.querySelector('textarea[name="opening"]').value.trim();
+            const repliesRaw = stepEl.querySelector('textarea[name="replies"]').value.trim();
+            const duration = Number(stepEl.querySelector('input[name="duration"]').value);
+            const modelUrl = stepEl.querySelector('input[name="modelUrl"]').value.trim();
+            if (!title || !prompt || !partnerName || !openingMessage || !duration) {
+              throw new Error('Uzupełnij wszystkie wymagane pola modułu tekstowego.');
+            }
+            const replies = repliesRaw ? repliesRaw.split('\n').map((line) => line.trim()).filter(Boolean) : [];
+            steps.push({
+              type: 'text',
+              title,
+              prompt,
+              partnerName,
+              openingMessage,
+              autoReplies: replies,
+              durationMinutes: duration,
+              modelUrl,
+            });
+          } else if (type === 'video') {
+            const title = stepEl.querySelector('input[name="title"]').value.trim();
+            const description = stepEl.querySelector('textarea[name="description"]').value.trim();
+            const youtubeUrl = stepEl.querySelector('input[name="youtubeUrl"]').value.trim();
+            if (!title || !youtubeUrl) {
+              throw new Error('Uzupełnij wymagane pola modułu wideo.');
+            }
+            steps.push({ type: 'video', title, description, youtubeUrl });
+          }
+        });
+      } catch (error) {
+        elements.builderStatus.textContent = error.message;
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/trainings', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ title, description, steps }),
+        });
+        if (!response.ok) {
+          const data = await response.json();
+          throw new Error(data.error || 'Nie udało się zapisać szkolenia.');
+        }
+        elements.builderStatus.textContent = 'Szkolenie zostało zapisane! Odświeżono listę modułów.';
+        elements.builderForm.reset();
+        elements.builderSteps.innerHTML = '';
+        await fetchTrainings();
+        state.activeTrainingId = state.trainings[state.trainings.length - 1]?.id || state.activeTrainingId;
+        state.activeStepIndex = 0;
+        renderTrainingDetails();
+      } catch (error) {
+        elements.builderStatus.textContent = error.message;
+      }
+    });
+
+    elements.trainingPicker.addEventListener('change', (event) => {
+      state.activeTrainingId = event.target.value;
+      state.activeStepIndex = 0;
+      renderTrainingDetails();
+    });
+
+    fetchTrainings().catch((error) => {
+      elements.trainingDescription.textContent = error.message;
+    });
+  </script>
+</body>
+</html>
