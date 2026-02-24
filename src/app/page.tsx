@@ -64,7 +64,7 @@ export default function Home() {
 
         {/* Logo */}
         <div className="relative z-10">
-          <div className="flex items-center gap-2 mb-16">
+          <a href="https://dfe.academy/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 mb-16 no-underline">
             <span className="text-white/90 text-sm font-medium tracking-wide" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
               DFE.academy
             </span>
@@ -72,15 +72,15 @@ export default function Home() {
               className="w-2 h-2 rounded-full animate-pulse-dot"
               style={{ background: "var(--accent)" }}
             />
-          </div>
+          </a>
 
           {/* Hero text */}
           <h1 className="text-white text-4xl lg:text-[52px] leading-tight mb-6">
-            Cyfrowy{" "}
-            <em style={{ color: "var(--accent)" }}>Lider</em>
+            Projekt AI{" "}
+            <em style={{ color: "var(--accent)" }}>w edukacji</em>
           </h1>
           <p className="text-white/60 text-base lg:text-lg leading-relaxed max-w-sm" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-            Platforma szkoleniowa z agentami AI dla uczestników programu &quot;Cyfrowy Lider&quot;
+            Platforma szkoleniowa z agentami AI dla uczestników programu
           </p>
         </div>
 
@@ -101,7 +101,7 @@ export default function Home() {
       {/* Right panel */}
       <div className="flex-1 flex flex-col items-center justify-center px-6 py-12 md:px-12 bg-surface relative">
         {/* Mobile logo */}
-        <div className="md:hidden flex items-center gap-2 mb-10">
+        <a href="https://dfe.academy/" target="_blank" rel="noopener noreferrer" className="md:hidden flex items-center gap-2 mb-10 no-underline">
           <span className="text-ink text-sm font-medium tracking-wide" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
             DFE.academy
           </span>
@@ -109,7 +109,7 @@ export default function Home() {
             className="w-2 h-2 rounded-full animate-pulse-dot"
             style={{ background: "var(--accent)" }}
           />
-        </div>
+        </a>
 
         <div className="w-full max-w-[420px] animate-fade-up">
           <div className="mb-8">

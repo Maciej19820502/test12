@@ -3,7 +3,7 @@ import "./globals.css";
 import { Providers } from "./providers";
 
 export const metadata: Metadata = {
-  title: "Projekt AI — Narzędzie szkoleniowe",
+  title: "Projekt AI w edukacji — DFE.academy",
   description: "Platforma szkoleniowa z agentami AI dla edukatorów",
 };
 

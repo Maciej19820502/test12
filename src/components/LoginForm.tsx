@@ -29,10 +29,6 @@ export default function LoginForm() {
     }
   }
 
-  function handleGuestLogin() {
-    router.push("/dashboard");
-  }
-
   const labelClass =
     "block text-xs font-semibold tracking-[1.5px] uppercase mb-2";
   const inputClass =
@@ -184,34 +180,6 @@ export default function LoginForm() {
         )}
       </button>
 
-      {/* Separator */}
-      <div className="flex items-center gap-3 py-1">
-        <div className="flex-1 h-px" style={{ background: "var(--border)" }} />
-        <span className="text-xs text-muted">lub</span>
-        <div className="flex-1 h-px" style={{ background: "var(--border)" }} />
-      </div>
-
-      {/* Guest button */}
-      <button
-        type="button"
-        onClick={handleGuestLogin}
-        className="w-full py-3 rounded-[14px] font-medium text-sm transition-all duration-250 border-[1.5px]"
-        style={{
-          borderColor: "var(--border)",
-          color: "var(--muted)",
-          background: "transparent",
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.borderColor = "var(--accent)";
-          e.currentTarget.style.color = "var(--accent)";
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.borderColor = "var(--border)";
-          e.currentTarget.style.color = "var(--muted)";
-        }}
-      >
-        Wejdź jako gość
-      </button>
     </form>
   );
 }

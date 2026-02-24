@@ -216,7 +216,12 @@ export default function AdminDashboard() {
       >
         <div className="max-w-7xl mx-auto px-4 h-full flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <div className="hidden min-[480px]:flex items-center gap-2">
+            <a
+              href="https://dfe.academy/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hidden min-[480px]:flex items-center gap-2 no-underline"
+            >
               <span className="text-white/90 text-sm font-medium tracking-wide" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                 DFE.academy
               </span>
@@ -224,7 +229,7 @@ export default function AdminDashboard() {
                 className="w-2 h-2 rounded-full animate-pulse-dot"
                 style={{ background: "var(--accent)" }}
               />
-            </div>
+            </a>
             <div className="hidden min-[480px]:block w-px h-8 bg-white/20" />
             <div>
               <h1 className="text-white text-lg">Panel admina</h1>
@@ -277,7 +282,7 @@ export default function AdminDashboard() {
               style={{ background: "var(--card)", border: "1px solid var(--border)" }}
             >
               <p className="text-sm text-muted" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-                Narzędzie {tool} ({TOOL_LABELS[tool]})
+                Krok {tool} ({TOOL_LABELS[tool]})
               </p>
               <p className="text-3xl font-bold mt-1" style={{ color: "var(--accent)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                 {toolCompletionCounts[i]}
