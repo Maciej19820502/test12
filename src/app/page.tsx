@@ -76,11 +76,11 @@ export default function Home() {
 
           {/* Hero text */}
           <h1 className="text-white text-4xl lg:text-[52px] leading-tight mb-6">
-            Cyfrowy{" "}
-            <em style={{ color: "var(--accent)" }}>Lider</em>
+            Projekt AI{" "}
+            <em style={{ color: "var(--accent)" }}>w edukacji</em>
           </h1>
           <p className="text-white/60 text-base lg:text-lg leading-relaxed max-w-sm" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-            Platforma szkoleniowa z agentami AI dla uczestników programu &quot;Cyfrowy Lider&quot;
+            Platforma szkoleniowa z agentami AI dla uczestników programu
           </p>
         </div>
 
