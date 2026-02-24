@@ -6,8 +6,12 @@ export async function GET() {
     const agentId = process.env.ELEVENLABS_AGENT_ID;
 
     if (!apiKey || !agentId) {
+      const missing = [];
+      if (!apiKey) missing.push("ELEVENLABS_API_KEY");
+      if (!agentId) missing.push("ELEVENLABS_AGENT_ID");
+      console.error("Missing env vars:", missing.join(", "));
       return NextResponse.json(
-        { error: "Brak konfiguracji ElevenLabs Agent" },
+        { error: `Brak zmiennych środowiskowych: ${missing.join(", ")}. Upewnij się, że są ustawione w .env.local i zrestartuj serwer (npm run dev).` },
         { status: 500 }
       );
     }
