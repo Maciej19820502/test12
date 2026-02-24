@@ -67,17 +67,6 @@ function formatPMForAI(review: PMReview): string {
   return `Oceny: E1=${review.e1_score}/10, E2=${review.e2_score}/10, E3=${review.e3_score}/10, E4=${review.e4_score}/10, E5=${review.e5_score}/10 (średnia: ${review.average_score}/10)\nRekomendacje: ${review.recommendations || "brak"}\nUlepszony harmonogram: ${review.improved_timeline || "brak"}`;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type SpeechRecognitionType = any;
-
-// Check for SpeechRecognition support
-function getSpeechRecognition(): SpeechRecognitionType | null {
-  if (typeof window === "undefined") return null;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const w = window as any;
-  return w.SpeechRecognition || w.webkitSpeechRecognition || null;
-}
-
 export default function ToolE() {
   const { user } = useAuth();
   const router = useRouter();
@@ -88,8 +77,8 @@ export default function ToolE() {
   const [saved, setSaved] = useState(false);
   const [decision, setDecision] = useState<string | null>(null);
   const [isListening, setIsListening] = useState(false);
+  const [isTranscribing, setIsTranscribing] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
-  const [speechSupported, setSpeechSupported] = useState(false);
   const [projectCard, setProjectCard] = useState<ProjectCard | null>(null);
   const [cfoReview, setCfoReview] = useState<CFOReview | null>(null);
   const [pmReview, setPmReview] = useState<PMReview | null>(null);
@@ -97,12 +86,8 @@ export default function ToolE() {
   const [loadingData, setLoadingData] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const initialized = useRef(false);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const recognitionRef = useRef<any>(null);
-
-  useEffect(() => {
-    setSpeechSupported(getSpeechRecognition() !== null);
-  }, []);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const chunksRef = useRef<Blob[]>([]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -174,22 +159,57 @@ export default function ToolE() {
     setLoadingData(false);
   }
 
-  const speakText = useCallback((text: string) => {
-    if (typeof window === "undefined" || !window.speechSynthesis) return;
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
-    window.speechSynthesis.cancel();
+  const speakText = useCallback(async (text: string) => {
+    if (typeof window === "undefined") return;
+
+    // Stop any currently playing audio
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current = null;
+    }
 
     const cleaned = text
       .replace("DECYZJA_KOMISJI\n", "")
       .replace("DECYZJA_KOMISJI", "");
 
-    const utterance = new SpeechSynthesisUtterance(cleaned);
-    utterance.lang = "pl-PL";
-    utterance.rate = 1.0;
-    utterance.onstart = () => setIsSpeaking(true);
-    utterance.onend = () => setIsSpeaking(false);
-    utterance.onerror = () => setIsSpeaking(false);
-    window.speechSynthesis.speak(utterance);
+    setIsSpeaking(true);
+
+    try {
+      const res = await fetch("/api/tts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: cleaned }),
+      });
+
+      if (!res.ok) {
+        console.error("TTS error:", res.status);
+        setIsSpeaking(false);
+        return;
+      }
+
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const audio = new Audio(url);
+      audioRef.current = audio;
+
+      audio.onended = () => {
+        setIsSpeaking(false);
+        URL.revokeObjectURL(url);
+        audioRef.current = null;
+      };
+      audio.onerror = () => {
+        setIsSpeaking(false);
+        URL.revokeObjectURL(url);
+        audioRef.current = null;
+      };
+
+      await audio.play();
+    } catch (err) {
+      console.error("TTS playback error:", err);
+      setIsSpeaking(false);
+    }
   }, []);
 
   async function sendToAI(currentMessages: Message[]) {
@@ -248,47 +268,64 @@ export default function ToolE() {
     await sendToAI(allMessages);
   }
 
-  function toggleListening() {
+  async function toggleListening() {
     if (isListening) {
-      recognitionRef.current?.stop();
-      setIsListening(false);
+      // Stop recording — this triggers ondataavailable + onstop
+      mediaRecorderRef.current?.stop();
       return;
     }
 
-    const SpeechRecognitionClass = getSpeechRecognition();
-    if (!SpeechRecognitionClass) return;
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream);
+      chunksRef.current = [];
 
-    const recognition = new SpeechRecognitionClass();
-    recognition.lang = "pl-PL";
-    recognition.continuous = false;
-    recognition.interimResults = false;
+      mediaRecorder.ondataavailable = (e) => {
+        if (e.data.size > 0) chunksRef.current.push(e.data);
+      };
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    recognition.onresult = (event: any) => {
-      const transcript = event.results[0]?.[0]?.transcript;
-      if (transcript) {
-        setInput((prev) => (prev ? prev + " " + transcript : transcript));
-      }
-    };
+      mediaRecorder.onstop = async () => {
+        setIsListening(false);
+        // Stop mic access
+        stream.getTracks().forEach((t) => t.stop());
 
-    recognition.onend = () => {
-      setIsListening(false);
-    };
+        const audioBlob = new Blob(chunksRef.current, { type: "audio/webm" });
+        if (audioBlob.size === 0) return;
 
-    recognition.onerror = () => {
-      setIsListening(false);
-    };
+        setIsTranscribing(true);
+        try {
+          const formData = new FormData();
+          formData.append("audio", audioBlob, "recording.webm");
 
-    recognitionRef.current = recognition;
-    recognition.start();
-    setIsListening(true);
+          const res = await fetch("/api/stt", {
+            method: "POST",
+            body: formData,
+          });
+
+          const data = await res.json();
+          if (data.text) {
+            setInput((prev) => (prev ? prev + " " + data.text : data.text));
+          }
+        } catch (err) {
+          console.error("STT error:", err);
+        }
+        setIsTranscribing(false);
+      };
+
+      mediaRecorderRef.current = mediaRecorder;
+      mediaRecorder.start();
+      setIsListening(true);
+    } catch (err) {
+      console.error("Microphone access error:", err);
+    }
   }
 
   function stopSpeaking() {
-    if (typeof window !== "undefined" && window.speechSynthesis) {
-      window.speechSynthesis.cancel();
-      setIsSpeaking(false);
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current = null;
     }
+    setIsSpeaking(false);
   }
 
   async function saveDefenseResult(reply: string, allMessages: Message[]) {
@@ -516,33 +553,38 @@ export default function ToolE() {
       {!saved && (
         <div className="border-t border-slate-200 bg-white px-4 py-3">
           <div className="max-w-3xl mx-auto flex gap-2">
-            {speechSupported && (
-              <button
-                onClick={toggleListening}
-                disabled={loading || saving}
-                className={`px-3 py-2.5 rounded-xl text-sm font-medium transition border ${
-                  isListening
-                    ? "bg-red-50 border-red-300 text-red-600 animate-pulse"
+            <button
+              onClick={toggleListening}
+              disabled={loading || saving || isTranscribing}
+              className={`px-3 py-2.5 rounded-xl text-sm font-medium transition border ${
+                isListening
+                  ? "bg-red-50 border-red-300 text-red-600 animate-pulse"
+                  : isTranscribing
+                    ? "bg-amber-50 border-amber-300 text-amber-600"
                     : "bg-purple-50 border-purple-300 text-purple-600 hover:bg-purple-100"
-                } disabled:opacity-50 disabled:cursor-not-allowed`}
-                title={isListening ? "Zatrzymaj nagrywanie" : "Mów"}
-              >
-                {isListening ? (
-                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                    <rect x="6" y="6" width="12" height="12" rx="2" />
-                  </svg>
-                ) : (
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
-                  </svg>
-                )}
-              </button>
-            )}
+              } disabled:opacity-50 disabled:cursor-not-allowed`}
+              title={isListening ? "Zatrzymaj nagrywanie" : isTranscribing ? "Transkrypcja..." : "Mów"}
+            >
+              {isListening ? (
+                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                  <rect x="6" y="6" width="12" height="12" rx="2" />
+                </svg>
+              ) : isTranscribing ? (
+                <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                </svg>
+              ) : (
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                </svg>
+              )}
+            </button>
             <textarea
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder={isListening ? "Słucham..." : "Odpowiedz komisji..."}
+              placeholder={isListening ? "Nagrywam..." : isTranscribing ? "Transkrybuję..." : "Odpowiedz komisji..."}
               rows={1}
               disabled={loading || saving}
               className="flex-1 resize-none rounded-xl border border-slate-300 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent disabled:opacity-50 disabled:bg-slate-50"
