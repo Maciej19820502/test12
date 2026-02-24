@@ -30,7 +30,7 @@ export async function GET() {
       const errorText = await response.text();
       console.error("ElevenLabs signed URL error:", response.status, errorText);
       return NextResponse.json(
-        { error: `ElevenLabs error: ${response.status}` },
+        { error: `ElevenLabs error: ${response.status}`, details: errorText },
         { status: 500 }
       );
     }
