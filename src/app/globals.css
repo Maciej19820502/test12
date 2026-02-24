@@ -1,17 +1,101 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f8fafc;
-  --foreground: #0f172a;
+  --ink: #1a1a2e;
+  --accent: #e94560;
+  --accent-glow: rgba(233, 69, 96, 0.15);
+  --accent-light: rgba(233, 69, 96, 0.08);
+  --surface: #f8f7f4;
+  --card: #ffffff;
+  --muted: #6b7280;
+  --border: #e5e3df;
+  --locked-text: #a8a4a0;
+  --locked-bg: #f3f2ef;
+  --purple: #7c3aed;
+  --purple-light: rgba(124, 58, 237, 0.1);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  --color-background: var(--surface);
+  --color-foreground: var(--ink);
+  --color-ink: var(--ink);
+  --color-accent: var(--accent);
+  --color-accent-glow: var(--accent-glow);
+  --color-accent-light: var(--accent-light);
+  --color-surface: var(--surface);
+  --color-card: var(--card);
+  --color-muted: var(--muted);
+  --color-border-custom: var(--border);
+  --color-locked-text: var(--locked-text);
+  --color-locked-bg: var(--locked-bg);
+  --color-purple-brand: var(--purple);
+  --color-purple-light: var(--purple-light);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background: var(--surface);
+  color: var(--ink);
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'DM Serif Display', serif;
+}
+
+/* Animations */
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse-dot {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(1.3);
+  }
+}
+
+@keyframes grid-fade {
+  0%, 100% { opacity: 0.15; }
+  50% { opacity: 0.25; }
+}
+
+.animate-fade-up {
+  animation: fadeUp 0.5s ease both;
+}
+
+.animate-pulse-dot {
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+
+/* Staggered fade-up delays */
+.fade-delay-1 { animation-delay: 0.1s; }
+.fade-delay-2 { animation-delay: 0.18s; }
+.fade-delay-3 { animation-delay: 0.26s; }
+.fade-delay-4 { animation-delay: 0.34s; }
+.fade-delay-5 { animation-delay: 0.42s; }
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--locked-bg);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--muted);
 }
