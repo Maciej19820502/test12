@@ -9,65 +9,130 @@ interface ToolCardProps {
 }
 
 export default function ToolCard({ tool, status }: ToolCardProps) {
-  const statusConfig = {
-    locked: {
-      bg: "bg-slate-50 border-slate-200",
-      badge: "bg-slate-100 text-slate-400",
-      badgeText: "Zablokowane",
-      textColor: "text-slate-400",
-    },
-    active: {
-      bg: "bg-white border-blue-200 shadow-md",
-      badge: "bg-blue-100 text-blue-700",
-      badgeText: "Aktywne",
-      textColor: "text-slate-900",
-    },
-    completed: {
-      bg: "bg-white border-green-200",
-      badge: "bg-green-100 text-green-700",
-      badgeText: "Ukończone",
-      textColor: "text-slate-700",
-    },
-  };
+  const isActive = status === "active";
+  const isCompleted = status === "completed";
+  const isLocked = status === "locked";
 
-  const config = statusConfig[status];
+  const cardStyle: React.CSSProperties = {
+    borderRadius: "14px",
+    padding: "22px 26px",
+    transition: "all 0.25s ease",
+    border: isActive
+      ? "1.5px solid var(--accent)"
+      : isCompleted
+      ? "1.5px solid var(--border)"
+      : "1.5px solid var(--border)",
+    background: isLocked ? "var(--locked-bg)" : "var(--card)",
+    opacity: isLocked ? 0.55 : 1,
+    boxShadow: isActive ? "0 4px 20px var(--accent-glow)" : "none",
+  };
 
   const cardContent = (
     <div
-      className={`rounded-xl border p-5 transition-all ${config.bg} ${
-        status === "active" ? "hover:shadow-lg cursor-pointer" : ""
-      } ${status === "locked" ? "opacity-60" : ""}`}
+      className={`${
+        isActive
+          ? "hover:-translate-y-0.5 hover:shadow-lg cursor-pointer"
+          : ""
+      }`}
+      style={cardStyle}
+      onMouseEnter={(e) => {
+        if (isActive) {
+          e.currentTarget.style.transform = "translateY(-2px)";
+          e.currentTarget.style.boxShadow = "0 8px 30px var(--accent-glow)";
+        }
+      }}
+      onMouseLeave={(e) => {
+        if (isActive) {
+          e.currentTarget.style.transform = "translateY(0)";
+          e.currentTarget.style.boxShadow = "0 4px 20px var(--accent-glow)";
+        }
+      }}
     >
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <span className="text-2xl">{tool.icon}</span>
           <div>
-            <h3 className={`font-semibold ${config.textColor}`}>{tool.name}</h3>
-            <p className={`text-sm ${status === "locked" ? "text-slate-400" : "text-slate-500"}`}>
+            <h3
+              className="font-semibold"
+              style={{
+                fontFamily: "'Plus Jakarta Sans', sans-serif",
+                color: isLocked ? "var(--locked-text)" : "var(--ink)",
+              }}
+            >
+              {tool.name}
+            </h3>
+            <p
+              className="text-sm"
+              style={{
+                fontFamily: "'Plus Jakarta Sans', sans-serif",
+                color: isLocked ? "var(--locked-text)" : "var(--muted)",
+              }}
+            >
               {tool.description}
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5">
           {tool.type === "voice" && (
-            <span className="text-xs px-2 py-1 rounded-full bg-purple-100 text-purple-700">
+            <span
+              className="text-xs font-medium px-3 py-1"
+              style={{
+                borderRadius: "100px",
+                background: "var(--purple-light)",
+                color: "var(--purple)",
+                fontFamily: "'Plus Jakarta Sans', sans-serif",
+              }}
+            >
               Głosowy
             </span>
           )}
-          <span className={`text-xs font-medium px-3 py-1 rounded-full ${config.badge}`}>
-            {config.badgeText}
+          <span
+            className="text-xs font-medium px-3 py-1"
+            style={{
+              borderRadius: "100px",
+              fontFamily: "'Plus Jakarta Sans', sans-serif",
+              background: isActive
+                ? "var(--accent-light)"
+                : isCompleted
+                ? "var(--accent-light)"
+                : "var(--locked-bg)",
+              color: isActive
+                ? "var(--accent)"
+                : isCompleted
+                ? "var(--accent)"
+                : "var(--locked-text)",
+              border: isLocked ? "1px solid var(--border)" : "none",
+            }}
+          >
+            {isCompleted ? "Ukończone" : isActive ? "Aktywne" : "Zablokowane"}
           </span>
-          {status === "active" && (
-            <svg className="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
+          {isActive && (
+            <div
+              className="w-8 h-8 rounded-full flex items-center justify-center transition-all duration-250"
+              style={{
+                border: "1.5px solid var(--accent)",
+                color: "var(--accent)",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = "var(--accent)";
+                e.currentTarget.style.color = "#ffffff";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = "transparent";
+                e.currentTarget.style.color = "var(--accent)";
+              }}
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </div>
           )}
         </div>
       </div>
     </div>
   );
 
-  if (status === "active") {
+  if (isActive) {
     return (
       <Link href={`/tools/${tool.id.toLowerCase()}`}>
         {cardContent}
