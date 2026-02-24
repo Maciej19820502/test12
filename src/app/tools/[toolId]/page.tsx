@@ -9,6 +9,7 @@ import ToolA from "@/components/ToolA";
 import ToolB from "@/components/ToolB";
 import ToolC from "@/components/ToolC";
 import ToolD from "@/components/ToolD";
+import ToolE from "@/components/ToolE";
 
 export default function ToolPage() {
   const { user, loading } = useAuth();
@@ -56,6 +57,8 @@ export default function ToolPage() {
         return <ToolC />;
       case "D":
         return <ToolD />;
+      case "E":
+        return <ToolE />;
       default:
         return (
           <main className="max-w-3xl mx-auto px-4 py-12">
