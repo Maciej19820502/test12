@@ -99,3 +99,41 @@ alter table tool_sessions enable row level security;
 alter table cfo_reviews enable row level security;
 alter table pm_reviews enable row level security;
 alter table defense_results enable row level security;
+
+-- RLS Policies
+
+-- Users: anyone can register and read their own data
+create policy "Allow insert for anon" on users for insert with check (true);
+create policy "Allow select for anon" on users for select using (true);
+create policy "Allow update own user" on users for update using (true);
+
+-- Projects
+create policy "Allow insert projects" on projects for insert with check (true);
+create policy "Allow select projects" on projects for select using (true);
+create policy "Allow update projects" on projects for update using (true);
+create policy "Allow delete projects" on projects for delete using (true);
+
+-- Project Cards
+create policy "Allow insert project_cards" on project_cards for insert with check (true);
+create policy "Allow select project_cards" on project_cards for select using (true);
+create policy "Allow update project_cards" on project_cards for update using (true);
+
+-- Tool Sessions
+create policy "Allow insert tool_sessions" on tool_sessions for insert with check (true);
+create policy "Allow select tool_sessions" on tool_sessions for select using (true);
+create policy "Allow update tool_sessions" on tool_sessions for update using (true);
+
+-- CFO Reviews
+create policy "Allow insert cfo_reviews" on cfo_reviews for insert with check (true);
+create policy "Allow select cfo_reviews" on cfo_reviews for select using (true);
+create policy "Allow update cfo_reviews" on cfo_reviews for update using (true);
+
+-- PM Reviews
+create policy "Allow insert pm_reviews" on pm_reviews for insert with check (true);
+create policy "Allow select pm_reviews" on pm_reviews for select using (true);
+create policy "Allow update pm_reviews" on pm_reviews for update using (true);
+
+-- Defense Results
+create policy "Allow insert defense_results" on defense_results for insert with check (true);
+create policy "Allow select defense_results" on defense_results for select using (true);
+create policy "Allow update defense_results" on defense_results for update using (true);
