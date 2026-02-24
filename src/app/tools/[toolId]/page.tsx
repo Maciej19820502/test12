@@ -38,7 +38,7 @@ export default function ToolPage() {
       <div className="min-h-screen flex items-center justify-center bg-surface">
         <div className="text-center">
           <p className="text-lg text-muted mb-4" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-            Narzędzie nie znalezione
+            Krok nie znaleziony
           </p>
           <Link
             href="/dashboard"
@@ -89,7 +89,7 @@ export default function ToolPage() {
                   border: "1px solid var(--accent-glow)",
                 }}
               >
-                To narzędzie jest w trakcie budowy. Wróć później.
+                Ten krok jest w trakcie budowy. Wróć później.
               </div>
             </div>
           </main>
@@ -119,7 +119,12 @@ export default function ToolPage() {
             </Link>
 
             {/* Logo */}
-            <div className="hidden min-[480px]:flex items-center gap-2">
+            <a
+              href="https://dfe.academy/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hidden min-[480px]:flex items-center gap-2 no-underline"
+            >
               <span className="text-white/90 text-sm font-medium tracking-wide" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                 DFE.academy
               </span>
@@ -127,7 +132,7 @@ export default function ToolPage() {
                 className="w-2 h-2 rounded-full animate-pulse-dot"
                 style={{ background: "var(--accent)" }}
               />
-            </div>
+            </a>
 
             <div className="hidden min-[480px]:block w-px h-8 bg-white/20" />
 
