@@ -5,6 +5,7 @@ import { useRouter, useParams } from "next/navigation";
 import { useEffect } from "react";
 import { TOOLS } from "@/lib/tools";
 import Link from "next/link";
+import ToolA from "@/components/ToolA";
 
 export default function ToolPage() {
   const { user, loading } = useAuth();
@@ -41,6 +42,31 @@ export default function ToolPage() {
     );
   }
 
+  // Render tool-specific content
+  function renderToolContent() {
+    switch (toolId) {
+      case "A":
+        return <ToolA />;
+      default:
+        return (
+          <main className="max-w-3xl mx-auto px-4 py-12">
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-8 text-center">
+              <div className="text-6xl mb-4">{tool!.icon}</div>
+              <h2 className="text-xl font-semibold text-slate-900 mb-2">{tool!.name}</h2>
+              <p className="text-slate-500 mb-6">
+                {tool!.type === "voice"
+                  ? "Agent głosowy — wkrótce dostępny"
+                  : "Agent tekstowy — wkrótce dostępny"}
+              </p>
+              <div className="inline-block bg-amber-50 text-amber-700 text-sm px-4 py-2 rounded-lg border border-amber-200">
+                To narzędzie jest w trakcie budowy. Wróć później.
+              </div>
+            </div>
+          </main>
+        );
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
       <header className="bg-white border-b border-slate-200 shadow-sm">
@@ -64,20 +90,7 @@ export default function ToolPage() {
         </div>
       </header>
 
-      <main className="max-w-3xl mx-auto px-4 py-12">
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-8 text-center">
-          <div className="text-6xl mb-4">{tool.icon}</div>
-          <h2 className="text-xl font-semibold text-slate-900 mb-2">{tool.name}</h2>
-          <p className="text-slate-500 mb-6">
-            {tool.type === "voice"
-              ? "Agent głosowy — wkrótce dostępny"
-              : "Agent tekstowy — wkrótce dostępny"}
-          </p>
-          <div className="inline-block bg-amber-50 text-amber-700 text-sm px-4 py-2 rounded-lg border border-amber-200">
-            To narzędzie jest w trakcie budowy. Wróć później.
-          </div>
-        </div>
-      </main>
+      {renderToolContent()}
     </div>
   );
 }
