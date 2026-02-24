@@ -41,12 +41,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return { error: "Wypełnij wszystkie pola" };
     }
 
-    // Check if user exists
-    const { data: existingUser } = await supabase
+    // Check if user exists (maybeSingle doesn't error on 0 rows)
+    const { data: existingUser, error: selectError } = await supabase
       .from("users")
       .select("id, email, name")
       .eq("email", email.toLowerCase().trim())
-      .single();
+      .maybeSingle();
+
+    if (selectError) {
+      console.error("Supabase select error:", selectError);
+      return { error: `Błąd połączenia z bazą danych: ${selectError.message}` };
+    }
 
     let currentUser: User;
 
@@ -65,7 +70,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .single();
 
       if (error || !newUser) {
-        return { error: "Błąd podczas tworzenia konta. Spróbuj ponownie." };
+        console.error("Supabase insert error:", error);
+        return { error: `Błąd podczas tworzenia konta: ${error?.message || "Brak danych"}` };
       }
 
       // Initialize tool sessions for the new user
