@@ -359,7 +359,7 @@ ${pmText}`;
 
   if (loadingData) {
     return (
-      <div className="flex items-center justify-center h-[calc(100vh-73px)]">
+      <div className="flex items-center justify-center h-[calc(100vh-72px-40px)]">
         <div className="animate-pulse text-slate-500">Ładowanie danych projektu...</div>
       </div>
     );
@@ -373,7 +373,7 @@ ${pmText}`;
         ? "recenzję CFO w Narzędziu C"
         : "recenzję PM w Narzędziu D";
     return (
-      <div className="flex items-center justify-center h-[calc(100vh-73px)]">
+      <div className="flex items-center justify-center h-[calc(100vh-72px-40px)]">
         <div className="text-center">
           <p className="text-slate-500 mb-4">Najpierw uzyskaj {missingName}.</p>
           <button
@@ -390,7 +390,7 @@ ${pmText}`;
   // Pre-defense: show start button
   if (conversation.status === "disconnected" && transcript.length === 0 && !saved) {
     return (
-      <div className="flex flex-col items-center justify-center h-[calc(100vh-73px)] gap-6">
+      <div className="flex flex-col items-center justify-center h-[calc(100vh-72px-40px)] gap-6">
         <div className="text-center max-w-md">
           <div className="w-20 h-20 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <svg className="w-10 h-10 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -419,7 +419,7 @@ ${pmText}`;
   }
 
   return (
-    <div className="flex flex-col h-[calc(100vh-73px)]">
+    <div className="flex flex-col h-[calc(100vh-72px-40px)]">
       {/* Status bar */}
       <div className="bg-purple-50 border-b border-purple-200 px-4 py-2.5">
         <div className="max-w-3xl mx-auto flex items-center gap-3">

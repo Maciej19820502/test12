@@ -289,7 +289,7 @@ export default function ToolD() {
 
   if (loadingData) {
     return (
-      <div className="flex items-center justify-center h-[calc(100vh-73px)]">
+      <div className="flex items-center justify-center h-[calc(100vh-72px-40px)]">
         <div className="animate-pulse text-slate-500">Ładowanie danych projektu...</div>
       </div>
     );
@@ -297,7 +297,7 @@ export default function ToolD() {
 
   if (!projectCard || !cfoReview) {
     return (
-      <div className="flex items-center justify-center h-[calc(100vh-73px)]">
+      <div className="flex items-center justify-center h-[calc(100vh-72px-40px)]">
         <div className="text-center">
           <p className="text-slate-500 mb-4">
             {!projectCard
@@ -316,7 +316,7 @@ export default function ToolD() {
   }
 
   return (
-    <div className="flex flex-col h-[calc(100vh-73px)]">
+    <div className="flex flex-col h-[calc(100vh-72px-40px)]">
       {/* PM badge */}
       <div className="bg-indigo-50 border-b border-indigo-200 px-4 py-2.5">
         <div className="max-w-3xl mx-auto flex items-center gap-2">
