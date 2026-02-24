@@ -41,6 +41,8 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
@@ -87,6 +89,29 @@ export default function AdminDashboard() {
       // silent
     }
     setLoading(false);
+  }
+
+  async function handleDelete(userId: string) {
+    setDeletingId(userId);
+    try {
+      const res = await fetch("/api/admin/participants", {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          "x-admin-password": password,
+        },
+        body: JSON.stringify({ userId }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setConfirmDeleteId(null);
+        setExpandedRow(null);
+        await refresh();
+      }
+    } catch {
+      // silent
+    }
+    setDeletingId(null);
   }
 
   if (!authenticated) {
@@ -459,37 +484,98 @@ export default function AdminDashboard() {
                         </td>
                       </tr>
 
-                      {/* Expanded row with PM scores details */}
-                      {expandedRow === p.id && p.pmScores && (
+                      {/* Expanded row with PM scores details + delete */}
+                      {expandedRow === p.id && (
                         <tr key={`${p.id}-details`} style={{ background: "var(--accent-light)", borderTop: "1px solid var(--accent-glow)" }}>
                           <td colSpan={11} className="px-6 py-4">
-                            <div className="text-sm">
-                              <p className="font-semibold mb-3" style={{ color: "var(--ink)" }}>Oceny szczegółowe PM:</p>
-                              <div className="grid grid-cols-5 gap-4 max-w-lg">
-                                {(["e1", "e2", "e3", "e4", "e5"] as const).map((key) => {
-                                  const score = p.pmScores?.[key];
-                                  return (
-                                    <div key={key} className="text-center">
-                                      <p className="text-xs uppercase font-medium text-muted">{key}</p>
-                                      <p
-                                        className="text-lg font-bold mt-0.5"
-                                        style={{
-                                          color:
-                                            score != null && score >= 4
-                                              ? "#16a34a"
-                                              : score != null && score >= 3
-                                              ? "#ca8a04"
-                                              : score != null
-                                              ? "var(--accent)"
-                                              : "var(--locked-text)",
-                                        }}
-                                      >
-                                        {score != null ? Number(score).toFixed(1) : "—"}
-                                      </p>
-                                    </div>
-                                  );
-                                })}
+                            {p.pmScores && (
+                              <div className="text-sm mb-4">
+                                <p className="font-semibold mb-3" style={{ color: "var(--ink)" }}>Oceny szczegółowe PM:</p>
+                                <div className="grid grid-cols-5 gap-4 max-w-lg">
+                                  {(["e1", "e2", "e3", "e4", "e5"] as const).map((key) => {
+                                    const score = p.pmScores?.[key];
+                                    return (
+                                      <div key={key} className="text-center">
+                                        <p className="text-xs uppercase font-medium text-muted">{key}</p>
+                                        <p
+                                          className="text-lg font-bold mt-0.5"
+                                          style={{
+                                            color:
+                                              score != null && score >= 4
+                                                ? "#16a34a"
+                                                : score != null && score >= 3
+                                                ? "#ca8a04"
+                                                : score != null
+                                                ? "var(--accent)"
+                                                : "var(--locked-text)",
+                                          }}
+                                        >
+                                          {score != null ? Number(score).toFixed(1) : "—"}
+                                        </p>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
                               </div>
+                            )}
+
+                            {/* Delete action */}
+                            <div
+                              className="flex items-center justify-between pt-3"
+                              style={{ borderTop: p.pmScores ? "1px solid var(--border)" : "none" }}
+                            >
+                              {confirmDeleteId === p.id ? (
+                                <div className="flex items-center gap-3">
+                                  <span className="text-sm text-ink font-medium">Usunąć wszystkie wyniki {p.name}?</span>
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleDelete(p.id);
+                                    }}
+                                    disabled={deletingId === p.id}
+                                    className="text-xs font-semibold px-4 py-1.5 rounded-[100px] text-white transition-all duration-250 disabled:opacity-50"
+                                    style={{ background: "var(--accent)" }}
+                                  >
+                                    {deletingId === p.id ? "Usuwanie..." : "Tak, usuń"}
+                                  </button>
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setConfirmDeleteId(null);
+                                    }}
+                                    className="text-xs font-medium px-4 py-1.5 rounded-[100px] transition-all duration-250"
+                                    style={{
+                                      border: "1.5px solid var(--border)",
+                                      color: "var(--muted)",
+                                    }}
+                                  >
+                                    Anuluj
+                                  </button>
+                                </div>
+                              ) : (
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setConfirmDeleteId(p.id);
+                                  }}
+                                  className="text-xs font-medium px-4 py-1.5 rounded-[100px] transition-all duration-250"
+                                  style={{
+                                    border: "1.5px solid var(--accent)",
+                                    color: "var(--accent)",
+                                    background: "transparent",
+                                  }}
+                                  onMouseEnter={(e) => {
+                                    e.currentTarget.style.background = "var(--accent)";
+                                    e.currentTarget.style.color = "#ffffff";
+                                  }}
+                                  onMouseLeave={(e) => {
+                                    e.currentTarget.style.background = "transparent";
+                                    e.currentTarget.style.color = "var(--accent)";
+                                  }}
+                                >
+                                  Usuń wyniki uczestnika
+                                </button>
+                              )}
                             </div>
                           </td>
                         </tr>

@@ -4,6 +4,45 @@ import { createClient } from "@supabase/supabase-js";
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://placeholder.supabase.co";
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "placeholder";
 
+export async function DELETE(req: NextRequest) {
+  const password = req.headers.get("x-admin-password");
+  if (password !== "MACIEK2026") {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const { userId } = await req.json();
+  if (!userId) {
+    return NextResponse.json({ error: "Missing userId" }, { status: 400 });
+  }
+
+  const supabase = createClient(supabaseUrl, supabaseKey);
+
+  // Get project IDs for this user
+  const { data: projects } = await supabase
+    .from("projects")
+    .select("id")
+    .eq("user_id", userId);
+
+  const projectIds = (projects || []).map((p) => p.id);
+
+  // Delete in order respecting foreign keys
+  if (projectIds.length > 0) {
+    await supabase.from("defense_results").delete().in("project_id", projectIds);
+    await supabase.from("pm_reviews").delete().in("project_id", projectIds);
+    await supabase.from("cfo_reviews").delete().in("project_id", projectIds);
+    await supabase.from("project_cards").delete().in("project_id", projectIds);
+    await supabase.from("projects").delete().eq("user_id", userId);
+  }
+
+  // Reset tool sessions to not_started
+  await supabase
+    .from("tool_sessions")
+    .update({ status: "not_started", completed_at: null })
+    .eq("user_id", userId);
+
+  return NextResponse.json({ success: true });
+}
+
 export async function GET(req: NextRequest) {
   const password = req.headers.get("x-admin-password");
   if (password !== "MACIEK2026") {
