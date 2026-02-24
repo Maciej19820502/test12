@@ -120,7 +120,7 @@ export default function ToolA() {
   }
 
   return (
-    <div className="flex flex-col h-[calc(100vh-73px)]">
+    <div className="flex flex-col h-[calc(100vh-72px-40px)]">
       {/* Chat messages */}
       <div className="flex-1 overflow-y-auto px-4 py-6 space-y-4">
         {messages.map((msg, i) => (
