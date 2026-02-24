@@ -3,6 +3,7 @@
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import Link from "next/link";
 import LoginForm from "@/components/LoginForm";
 
 export default function Home() {
@@ -33,6 +34,14 @@ export default function Home() {
           <p className="text-slate-500 mt-2">Narzędzie szkoleniowe dla edukatorów</p>
         </div>
         <LoginForm />
+        <div className="text-center mt-6">
+          <Link
+            href="/admin"
+            className="text-xs text-slate-400 hover:text-slate-600 transition"
+          >
+            Panel admina
+          </Link>
+        </div>
       </div>
     </main>
   );
