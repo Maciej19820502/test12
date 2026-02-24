@@ -6,14 +6,18 @@ export async function GET() {
     const agentId = process.env.ELEVENLABS_AGENT_ID;
 
     if (!apiKey || !agentId) {
+      const missing = [];
+      if (!apiKey) missing.push("ELEVENLABS_API_KEY");
+      if (!agentId) missing.push("ELEVENLABS_AGENT_ID");
+      console.error("Missing env vars:", missing.join(", "));
       return NextResponse.json(
-        { error: "Brak konfiguracji ElevenLabs Agent" },
+        { error: `Brak zmiennych środowiskowych: ${missing.join(", ")}. Upewnij się, że są ustawione w .env.local i zrestartuj serwer (npm run dev).` },
         { status: 500 }
       );
     }
 
     const response = await fetch(
-      `https://api.elevenlabs.io/v1/convai/conversation/get_signed_url?agent_id=${agentId}`,
+      `https://api.elevenlabs.io/v1/convai/conversation/get-signed-url?agent_id=${agentId}`,
       {
         method: "GET",
         headers: {
