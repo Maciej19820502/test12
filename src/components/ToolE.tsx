@@ -174,22 +174,57 @@ export default function ToolE() {
     setLoadingData(false);
   }
 
-  const speakText = useCallback((text: string) => {
-    if (typeof window === "undefined" || !window.speechSynthesis) return;
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
-    window.speechSynthesis.cancel();
+  const speakText = useCallback(async (text: string) => {
+    if (typeof window === "undefined") return;
+
+    // Stop any currently playing audio
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current = null;
+    }
 
     const cleaned = text
       .replace("DECYZJA_KOMISJI\n", "")
       .replace("DECYZJA_KOMISJI", "");
 
-    const utterance = new SpeechSynthesisUtterance(cleaned);
-    utterance.lang = "pl-PL";
-    utterance.rate = 1.0;
-    utterance.onstart = () => setIsSpeaking(true);
-    utterance.onend = () => setIsSpeaking(false);
-    utterance.onerror = () => setIsSpeaking(false);
-    window.speechSynthesis.speak(utterance);
+    setIsSpeaking(true);
+
+    try {
+      const res = await fetch("/api/tts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: cleaned }),
+      });
+
+      if (!res.ok) {
+        console.error("TTS error:", res.status);
+        setIsSpeaking(false);
+        return;
+      }
+
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const audio = new Audio(url);
+      audioRef.current = audio;
+
+      audio.onended = () => {
+        setIsSpeaking(false);
+        URL.revokeObjectURL(url);
+        audioRef.current = null;
+      };
+      audio.onerror = () => {
+        setIsSpeaking(false);
+        URL.revokeObjectURL(url);
+        audioRef.current = null;
+      };
+
+      await audio.play();
+    } catch (err) {
+      console.error("TTS playback error:", err);
+      setIsSpeaking(false);
+    }
   }, []);
 
   async function sendToAI(currentMessages: Message[]) {
@@ -285,10 +320,11 @@ export default function ToolE() {
   }
 
   function stopSpeaking() {
-    if (typeof window !== "undefined" && window.speechSynthesis) {
-      window.speechSynthesis.cancel();
-      setIsSpeaking(false);
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current = null;
     }
+    setIsSpeaking(false);
   }
 
   async function saveDefenseResult(reply: string, allMessages: Message[]) {
