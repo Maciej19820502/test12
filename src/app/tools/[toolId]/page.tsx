@@ -7,6 +7,8 @@ import { TOOLS } from "@/lib/tools";
 import Link from "next/link";
 import ToolA from "@/components/ToolA";
 import ToolB from "@/components/ToolB";
+import ToolC from "@/components/ToolC";
+import ToolD from "@/components/ToolD";
 
 export default function ToolPage() {
   const { user, loading } = useAuth();
@@ -50,6 +52,10 @@ export default function ToolPage() {
         return <ToolA />;
       case "B":
         return <ToolB />;
+      case "C":
+        return <ToolC />;
+      case "D":
+        return <ToolD />;
       default:
         return (
           <main className="max-w-3xl mx-auto px-4 py-12">
