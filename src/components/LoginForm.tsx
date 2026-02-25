@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 export default function LoginForm() {
   const { login } = useAuth();
@@ -13,6 +14,7 @@ export default function LoginForm() {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -144,6 +146,29 @@ export default function LoginForm() {
         </button>
       </div>
 
+      {/* Terms acceptance */}
+      <div className="flex items-start gap-2">
+        <input
+          type="checkbox"
+          id="acceptTerms"
+          checked={acceptedTerms}
+          onChange={(e) => setAcceptedTerms(e.target.checked)}
+          className="w-4 h-4 rounded mt-0.5 shrink-0"
+          style={{ accentColor: "var(--accent)" }}
+        />
+        <label htmlFor="acceptTerms" className="text-xs leading-relaxed cursor-pointer select-none" style={{ color: "var(--muted)" }}>
+          Akceptuję{" "}
+          <Link href="/regulamin" target="_blank" className="underline font-medium" style={{ color: "var(--accent)" }}>
+            Regulamin
+          </Link>{" "}
+          oraz{" "}
+          <Link href="/polityka-prywatnosci" target="_blank" className="underline font-medium" style={{ color: "var(--accent)" }}>
+            Politykę Prywatności
+          </Link>{" "}
+          usługi &quot;Projekt AI w edukacji&quot;.
+        </label>
+      </div>
+
       {error && (
         <div
           className="text-sm px-4 py-3 rounded-[14px] border"
@@ -160,7 +185,7 @@ export default function LoginForm() {
       {/* Submit button */}
       <button
         type="submit"
-        disabled={isLoading}
+        disabled={isLoading || !acceptedTerms}
         className="group w-full py-3 rounded-[14px] font-semibold text-white transition-all duration-250 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
         style={{ background: "var(--accent)" }}
         onMouseEnter={(e) => {
