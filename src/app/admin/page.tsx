@@ -593,6 +593,15 @@ export default function AdminDashboard() {
                         <tr key={`${p.id}-details`} style={{ background: "var(--accent-light)", borderTop: "1px solid var(--accent-glow)" }}>
                           <td colSpan={12} className="px-6 py-4">
                             <div className="text-sm space-y-4">
+                              {p.projectTitle && (
+                                <div>
+                                  <p className="font-semibold mb-1" style={{ color: "var(--ink)" }}>Tytuł projektu:</p>
+                                  <p className="text-sm leading-relaxed" style={{ color: "var(--ink)" }}>
+                                    {p.projectTitle}
+                                  </p>
+                                </div>
+                              )}
+
                               {p.pmScores && (
                                 <div>
                                   <p className="font-semibold mb-3" style={{ color: "var(--ink)" }}>Oceny szczegółowe PM:</p>
@@ -638,7 +647,7 @@ export default function AdminDashboard() {
                                 </div>
                               )}
 
-                              {!descriptions[p.id] && !p.pmScores && (
+                              {!descriptions[p.id] && !p.pmScores && !p.projectTitle && (
                                 <p className="text-muted">Brak szczegółowych danych do wyświetlenia.</p>
                               )}
                             </div>
