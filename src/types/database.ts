@@ -7,18 +7,21 @@ export interface Database {
           email: string;
           name: string;
           created_at: string;
+          last_login_at: string | null;
         };
         Insert: {
           id?: string;
           email: string;
           name: string;
           created_at?: string;
+          last_login_at?: string | null;
         };
         Update: {
           id?: string;
           email?: string;
           name?: string;
           created_at?: string;
+          last_login_at?: string | null;
         };
       };
       projects: {

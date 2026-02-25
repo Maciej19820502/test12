@@ -61,6 +61,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         email: existingUser.email,
         name: existingUser.name,
       };
+      // Update last login timestamp
+      await supabase
+        .from("users")
+        .update({ last_login_at: new Date().toISOString() })
+        .eq("id", existingUser.id);
     } else {
       // Create new user
       const { data: newUser, error } = await supabase
