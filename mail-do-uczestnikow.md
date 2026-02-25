@@ -20,7 +20,7 @@ Na platformie „Projekt AI w edukacji" przejdą Państwo przez **5 kolejnych kr
 
 ## Dane do logowania
 
-- **Adres platformy:** [adres zostanie uzupełniony przez prowadzącego]
+- **Adres platformy:** https://ai-projekt.vercel.app/
 - **Hasło dostępu:** `LIDER2026`
 - **Imię i e-mail:** przy pierwszym logowaniu proszę podać swoje imię (lub imię i nazwisko) oraz adres e-mail. Na tej podstawie system utworzy Państwa konto. Przy kolejnych logowaniach wystarczy podać te same dane i hasło — postęp pracy zostanie zachowany.
 
