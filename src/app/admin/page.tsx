@@ -12,17 +12,34 @@ interface PmScores {
   average: number | null;
 }
 
+interface ProjectCard {
+  s1: string | null;
+  s2: string | null;
+  s3: string | null;
+  s4: string | null;
+  s5: string | null;
+  s6: string | null;
+  s7: string | null;
+  s8: string | null;
+}
+
 interface Participant {
   id: string;
   name: string;
   email: string;
   createdAt: string;
   projectTitle: string | null;
+  projectDescription: string | null;
   completedTools: string[];
   completedCount: number;
   pmScores: PmScores | null;
+  pmRecommendations: string | null;
   cfoApproved: boolean | null;
+  cfoReviewText: string | null;
+  cfoRequirements: string | null;
   defenseDecision: string | null;
+  defenseNotes: string | null;
+  projectCard: ProjectCard | null;
 }
 
 const TOOLS_ORDER = ["A", "B", "C", "D", "E"];
@@ -41,6 +58,10 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
+  const [descriptions, setDescriptions] = useState<Record<string, string>>({});
+  const [generatingDesc, setGeneratingDesc] = useState<Record<string, boolean>>({});
+  const [overallSummary, setOverallSummary] = useState("");
+  const [generatingOverall, setGeneratingOverall] = useState(false);
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
@@ -88,6 +109,63 @@ export default function AdminDashboard() {
     }
     setLoading(false);
   }
+
+  async function generateDescription(participant: Participant) {
+    setGeneratingDesc((prev) => ({ ...prev, [participant.id]: true }));
+    try {
+      const res = await fetch("/api/admin/ai-summary", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-admin-password": password,
+        },
+        body: JSON.stringify({ type: "participant", data: participant }),
+      });
+      const result = await res.json();
+      if (result.summary) {
+        setDescriptions((prev) => ({ ...prev, [participant.id]: result.summary }));
+      }
+    } catch {
+      setDescriptions((prev) => ({ ...prev, [participant.id]: "Błąd generowania opisu." }));
+    }
+    setGeneratingDesc((prev) => ({ ...prev, [participant.id]: false }));
+  }
+
+  async function generateAllDescriptions() {
+    const pending = participants.filter((p) => !descriptions[p.id]);
+    for (const p of pending) {
+      await generateDescription(p);
+    }
+  }
+
+  async function generateOverallSummary() {
+    const descsWithNames = participants
+      .filter((p) => descriptions[p.id])
+      .map((p) => ({ name: p.name, description: descriptions[p.id] }));
+
+    if (descsWithNames.length === 0) return;
+
+    setGeneratingOverall(true);
+    try {
+      const res = await fetch("/api/admin/ai-summary", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-admin-password": password,
+        },
+        body: JSON.stringify({ type: "overall", data: { descriptions: descsWithNames } }),
+      });
+      const result = await res.json();
+      if (result.summary) {
+        setOverallSummary(result.summary);
+      }
+    } catch {
+      setOverallSummary("Błąd generowania podsumowania.");
+    }
+    setGeneratingOverall(false);
+  }
+
+  const descCount = Object.keys(descriptions).length;
 
   if (!authenticated) {
     return (
@@ -302,8 +380,20 @@ export default function AdminDashboard() {
           className="rounded-[14px] overflow-hidden animate-fade-up"
           style={{ background: "var(--card)", border: "1px solid var(--border)" }}
         >
-          <div className="px-6 py-4" style={{ borderBottom: "1px solid var(--border)" }}>
+          <div className="px-6 py-4 flex items-center justify-between" style={{ borderBottom: "1px solid var(--border)" }}>
             <h2 className="text-lg text-ink">Uczestnicy</h2>
+            {participants.length > 0 && (
+              <button
+                onClick={generateAllDescriptions}
+                disabled={Object.values(generatingDesc).some(Boolean)}
+                className="text-xs px-4 py-1.5 rounded-[14px] font-medium text-white transition-all duration-250 disabled:opacity-50 disabled:cursor-not-allowed"
+                style={{ background: "var(--purple)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+              >
+                {Object.values(generatingDesc).some(Boolean)
+                  ? "Generowanie..."
+                  : `Generuj opisy AI (${descCount}/${participants.length})`}
+              </button>
+            )}
           </div>
 
           {participants.length === 0 ? (
@@ -327,6 +417,7 @@ export default function AdminDashboard() {
                     <th className="px-4 py-3 font-semibold text-center" style={{ color: "var(--muted)" }}>Ocena PM</th>
                     <th className="px-4 py-3 font-semibold text-center" style={{ color: "var(--muted)" }}>CFO</th>
                     <th className="px-4 py-3 font-semibold text-center" style={{ color: "var(--muted)" }}>Obrona</th>
+                    <th className="px-4 py-3 font-semibold text-center" style={{ color: "var(--muted)", minWidth: "100px" }}>Opis</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -457,39 +548,108 @@ export default function AdminDashboard() {
                             <span className="text-locked-text">—</span>
                           )}
                         </td>
+                        <td className="px-4 py-3 text-center">
+                          {descriptions[p.id] ? (
+                            <span
+                              className="inline-flex px-2.5 py-0.5 text-xs font-medium"
+                              style={{
+                                borderRadius: "100px",
+                                background: "var(--purple-light)",
+                                color: "var(--purple)",
+                              }}
+                            >
+                              Gotowy
+                            </span>
+                          ) : generatingDesc[p.id] ? (
+                            <span className="text-xs text-muted animate-pulse">Generuję...</span>
+                          ) : (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                generateDescription(p);
+                              }}
+                              className="text-xs px-3 py-1 rounded-[10px] font-medium transition-all duration-200"
+                              style={{
+                                background: "var(--purple-light)",
+                                color: "var(--purple)",
+                              }}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.background = "var(--purple)";
+                                e.currentTarget.style.color = "#fff";
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.background = "var(--purple-light)";
+                                e.currentTarget.style.color = "var(--purple)";
+                              }}
+                            >
+                              Generuj
+                            </button>
+                          )}
+                        </td>
                       </tr>
 
-                      {/* Expanded row with PM scores details */}
-                      {expandedRow === p.id && p.pmScores && (
+                      {/* Expanded row with PM scores + description */}
+                      {expandedRow === p.id && (
                         <tr key={`${p.id}-details`} style={{ background: "var(--accent-light)", borderTop: "1px solid var(--accent-glow)" }}>
-                          <td colSpan={11} className="px-6 py-4">
-                            <div className="text-sm">
-                              <p className="font-semibold mb-3" style={{ color: "var(--ink)" }}>Oceny szczegółowe PM:</p>
-                              <div className="grid grid-cols-5 gap-4 max-w-lg">
-                                {(["e1", "e2", "e3", "e4", "e5"] as const).map((key) => {
-                                  const score = p.pmScores?.[key];
-                                  return (
-                                    <div key={key} className="text-center">
-                                      <p className="text-xs uppercase font-medium text-muted">{key}</p>
-                                      <p
-                                        className="text-lg font-bold mt-0.5"
-                                        style={{
-                                          color:
-                                            score != null && score >= 4
-                                              ? "#16a34a"
-                                              : score != null && score >= 3
-                                              ? "#ca8a04"
-                                              : score != null
-                                              ? "var(--accent)"
-                                              : "var(--locked-text)",
-                                        }}
-                                      >
-                                        {score != null ? Number(score).toFixed(1) : "—"}
-                                      </p>
-                                    </div>
-                                  );
-                                })}
-                              </div>
+                          <td colSpan={12} className="px-6 py-4">
+                            <div className="text-sm space-y-4">
+                              {p.projectTitle && (
+                                <div>
+                                  <p className="font-semibold mb-1" style={{ color: "var(--ink)" }}>Tytuł projektu:</p>
+                                  <p className="text-sm leading-relaxed" style={{ color: "var(--ink)" }}>
+                                    {p.projectTitle}
+                                  </p>
+                                </div>
+                              )}
+
+                              {p.pmScores && (
+                                <div>
+                                  <p className="font-semibold mb-3" style={{ color: "var(--ink)" }}>Oceny szczegółowe PM:</p>
+                                  <div className="grid grid-cols-5 gap-4 max-w-lg">
+                                    {(["e1", "e2", "e3", "e4", "e5"] as const).map((key) => {
+                                      const score = p.pmScores?.[key];
+                                      return (
+                                        <div key={key} className="text-center">
+                                          <p className="text-xs uppercase font-medium text-muted">{key}</p>
+                                          <p
+                                            className="text-lg font-bold mt-0.5"
+                                            style={{
+                                              color:
+                                                score != null && score >= 4
+                                                  ? "#16a34a"
+                                                  : score != null && score >= 3
+                                                  ? "#ca8a04"
+                                                  : score != null
+                                                  ? "var(--accent)"
+                                                  : "var(--locked-text)",
+                                            }}
+                                          >
+                                            {score != null ? Number(score).toFixed(1) : "—"}
+                                          </p>
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                </div>
+                              )}
+
+                              {descriptions[p.id] && (
+                                <div
+                                  className="rounded-[10px] p-4"
+                                  style={{ background: "var(--card)", border: "1px solid var(--border)" }}
+                                >
+                                  <p className="font-semibold mb-2" style={{ color: "var(--purple)" }}>
+                                    Opis AI:
+                                  </p>
+                                  <p className="text-sm leading-relaxed whitespace-pre-wrap" style={{ color: "var(--ink)" }}>
+                                    {descriptions[p.id]}
+                                  </p>
+                                </div>
+                              )}
+
+                              {!descriptions[p.id] && !p.pmScores && !p.projectTitle && (
+                                <p className="text-muted">Brak szczegółowych danych do wyświetlenia.</p>
+                              )}
                             </div>
                           </td>
                         </tr>
@@ -501,6 +661,52 @@ export default function AdminDashboard() {
             </div>
           )}
         </div>
+
+        {/* Overall summary section */}
+        {participants.length > 0 && (
+          <div
+            className="rounded-[14px] mt-8 animate-fade-up"
+            style={{ background: "var(--card)", border: "1px solid var(--border)" }}
+          >
+            <div
+              className="px-6 py-4 flex items-center justify-between"
+              style={{ borderBottom: "1px solid var(--border)" }}
+            >
+              <div>
+                <h2 className="text-lg text-ink">Podsumowanie grupy</h2>
+                <p className="text-xs text-muted mt-0.5" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                  Wnioski z opisów uczestników generowane przez AI
+                </p>
+              </div>
+              <button
+                onClick={generateOverallSummary}
+                disabled={generatingOverall || descCount === 0}
+                className="text-xs px-4 py-1.5 rounded-[14px] font-medium text-white transition-all duration-250 disabled:opacity-50 disabled:cursor-not-allowed"
+                style={{ background: "var(--accent)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+              >
+                {generatingOverall
+                  ? "Generowanie podsumowania..."
+                  : descCount === 0
+                  ? "Najpierw wygeneruj opisy"
+                  : `Generuj podsumowanie (na bazie ${descCount} opisów)`}
+              </button>
+            </div>
+
+            <div className="px-6 py-5" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+              {overallSummary ? (
+                <div className="text-sm leading-relaxed whitespace-pre-wrap" style={{ color: "var(--ink)" }}>
+                  {overallSummary}
+                </div>
+              ) : (
+                <p className="text-sm text-muted">
+                  {descCount === 0
+                    ? "Aby wygenerować podsumowanie grupy, najpierw wygeneruj opisy indywidualnych uczestników za pomocą przycisku \"Generuj opisy AI\" powyżej."
+                    : "Kliknij przycisk powyżej, aby wygenerować podsumowanie na bazie opisów uczestników."}
+                </p>
+              )}
+            </div>
+          </div>
+        )}
       </main>
 
       {/* Footer */}
