@@ -38,29 +38,35 @@ export async function GET(req: NextRequest) {
   // Fetch projects with related data
   const { data: projects } = await supabase
     .from("projects")
-    .select("id, user_id, topic_title, status")
+    .select("id, user_id, topic_title, topic_description, status")
     .in("user_id", userIds);
 
   const projectIds = (projects || []).map((p) => p.id);
 
-  // Fetch PM reviews and CFO reviews and defense results in parallel
-  const [pmRes, cfoRes, defenseRes] = await Promise.all([
+  // Fetch PM reviews, CFO reviews, defense results, and project cards in parallel
+  const [pmRes, cfoRes, defenseRes, cardsRes] = await Promise.all([
     projectIds.length > 0
       ? supabase
           .from("pm_reviews")
-          .select("project_id, e1_score, e2_score, e3_score, e4_score, e5_score, average_score")
+          .select("project_id, e1_score, e2_score, e3_score, e4_score, e5_score, average_score, recommendations")
           .in("project_id", projectIds)
       : { data: [] },
     projectIds.length > 0
       ? supabase
           .from("cfo_reviews")
-          .select("project_id, approved")
+          .select("project_id, approved, review_text, requirements")
           .in("project_id", projectIds)
       : { data: [] },
     projectIds.length > 0
       ? supabase
           .from("defense_results")
-          .select("project_id, decision")
+          .select("project_id, decision, notes_summary")
+          .in("project_id", projectIds)
+      : { data: [] },
+    projectIds.length > 0
+      ? supabase
+          .from("project_cards")
+          .select("project_id, section_1, section_2, section_3, section_4, section_5, section_6, section_7, section_8")
           .in("project_id", projectIds)
       : { data: [] },
   ]);
@@ -68,6 +74,7 @@ export async function GET(req: NextRequest) {
   const pmReviews = pmRes.data || [];
   const cfoReviews = cfoRes.data || [];
   const defenseResults = defenseRes.data || [];
+  const projectCards = cardsRes.data || [];
 
   // Build participant summaries
   const participants = (users || []).map((user) => {
@@ -86,6 +93,9 @@ export async function GET(req: NextRequest) {
     const defense = projectId
       ? defenseResults.find((r) => r.project_id === projectId)
       : null;
+    const card = projectId
+      ? projectCards.find((r) => r.project_id === projectId)
+      : null;
 
     return {
       id: user.id,
@@ -93,6 +103,7 @@ export async function GET(req: NextRequest) {
       email: user.email,
       createdAt: user.created_at,
       projectTitle: userProject?.topic_title || null,
+      projectDescription: userProject?.topic_description || null,
       completedTools,
       completedCount: completedTools.length,
       pmScores: pmReview
@@ -105,8 +116,24 @@ export async function GET(req: NextRequest) {
             average: pmReview.average_score,
           }
         : null,
+      pmRecommendations: pmReview?.recommendations ?? null,
       cfoApproved: cfoReview?.approved ?? null,
+      cfoReviewText: cfoReview?.review_text ?? null,
+      cfoRequirements: cfoReview?.requirements ?? null,
       defenseDecision: defense?.decision ?? null,
+      defenseNotes: defense?.notes_summary ?? null,
+      projectCard: card
+        ? {
+            s1: card.section_1,
+            s2: card.section_2,
+            s3: card.section_3,
+            s4: card.section_4,
+            s5: card.section_5,
+            s6: card.section_6,
+            s7: card.section_7,
+            s8: card.section_8,
+          }
+        : null,
     };
   });
 
