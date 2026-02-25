@@ -32,7 +32,7 @@ export async function GET(req: NextRequest) {
   // Fetch user details
   const { data: users } = await supabase
     .from("users")
-    .select("id, name, email, created_at")
+    .select("id, name, email, created_at, last_login_at")
     .in("id", userIds);
 
   // Fetch projects with related data
@@ -102,6 +102,7 @@ export async function GET(req: NextRequest) {
       name: user.name,
       email: user.email,
       createdAt: user.created_at,
+      lastLoginAt: user.last_login_at || null,
       projectTitle: userProject?.topic_title || null,
       projectDescription: userProject?.topic_description || null,
       completedTools,
@@ -141,4 +142,27 @@ export async function GET(req: NextRequest) {
   participants.sort((a, b) => b.completedCount - a.completedCount);
 
   return NextResponse.json({ participants });
+}
+
+export async function DELETE(req: NextRequest) {
+  const password = req.headers.get("x-admin-password");
+  if (password !== "MACIEK2026") {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const { userId } = await req.json();
+  if (!userId) {
+    return NextResponse.json({ error: "Missing userId" }, { status: 400 });
+  }
+
+  const supabase = createClient(supabaseUrl, supabaseKey);
+
+  // Delete user — cascade will remove projects, tool_sessions, and related data
+  const { error } = await supabase.from("users").delete().eq("id", userId);
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  return NextResponse.json({ success: true });
 }

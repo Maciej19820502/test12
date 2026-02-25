@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import Link from "next/link";
 
 interface PmScores {
@@ -28,6 +28,7 @@ interface Participant {
   name: string;
   email: string;
   createdAt: string;
+  lastLoginAt: string | null;
   projectTitle: string | null;
   projectDescription: string | null;
   completedTools: string[];
@@ -40,6 +41,15 @@ interface Participant {
   defenseDecision: string | null;
   defenseNotes: string | null;
   projectCard: ProjectCard | null;
+}
+
+type SortKey = "createdAt" | "lastLoginAt" | "pmScore" | "cfoApproved" | "defenseDecision";
+type SortDir = "asc" | "desc";
+
+function formatDate(dateStr: string | null): string {
+  if (!dateStr) return "—";
+  const d = new Date(dateStr);
+  return d.toLocaleDateString("pl-PL", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
 }
 
 const TOOLS_ORDER = ["A", "B", "C", "D", "E"];
@@ -62,6 +72,9 @@ export default function AdminDashboard() {
   const [generatingDesc, setGeneratingDesc] = useState<Record<string, boolean>>({});
   const [overallSummary, setOverallSummary] = useState("");
   const [generatingOverall, setGeneratingOverall] = useState(false);
+  const [sortBy, setSortBy] = useState<SortKey | null>(null);
+  const [sortDir, setSortDir] = useState<SortDir>("desc");
+  const [deleting, setDeleting] = useState<Record<string, boolean>>({});
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
@@ -164,6 +177,80 @@ export default function AdminDashboard() {
     }
     setGeneratingOverall(false);
   }
+
+  async function deleteParticipant(userId: string, name: string) {
+    if (!confirm(`Czy na pewno chcesz usunąć uczestnika "${name}"? Ta operacja jest nieodwracalna.`)) return;
+    setDeleting((prev) => ({ ...prev, [userId]: true }));
+    try {
+      const res = await fetch("/api/admin/participants", {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          "x-admin-password": password,
+        },
+        body: JSON.stringify({ userId }),
+      });
+      const result = await res.json();
+      if (result.success) {
+        setParticipants((prev) => prev.filter((p) => p.id !== userId));
+        if (expandedRow === userId) setExpandedRow(null);
+      }
+    } catch {
+      // silent
+    }
+    setDeleting((prev) => ({ ...prev, [userId]: false }));
+  }
+
+  function toggleSort(key: SortKey) {
+    if (sortBy === key) {
+      if (sortDir === "desc") {
+        setSortDir("asc");
+      } else {
+        setSortBy(null);
+        setSortDir("desc");
+      }
+    } else {
+      setSortBy(key);
+      setSortDir("desc");
+    }
+  }
+
+  const sortedParticipants = useMemo(() => {
+    if (!sortBy) return participants;
+    return [...participants].sort((a, b) => {
+      let cmp = 0;
+      switch (sortBy) {
+        case "createdAt":
+          cmp = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+          break;
+        case "lastLoginAt": {
+          const aTime = a.lastLoginAt ? new Date(a.lastLoginAt).getTime() : 0;
+          const bTime = b.lastLoginAt ? new Date(b.lastLoginAt).getTime() : 0;
+          cmp = aTime - bTime;
+          break;
+        }
+        case "pmScore": {
+          const aScore = a.pmScores?.average ?? -1;
+          const bScore = b.pmScores?.average ?? -1;
+          cmp = aScore - bScore;
+          break;
+        }
+        case "cfoApproved": {
+          const aVal = a.cfoApproved === true ? 2 : a.cfoApproved === false ? 1 : 0;
+          const bVal = b.cfoApproved === true ? 2 : b.cfoApproved === false ? 1 : 0;
+          cmp = aVal - bVal;
+          break;
+        }
+        case "defenseDecision": {
+          const aStr = a.defenseDecision || "";
+          const bStr = b.defenseDecision || "";
+          cmp = aStr.localeCompare(bStr, "pl");
+          break;
+        }
+      }
+      return sortDir === "asc" ? cmp : -cmp;
+    });
+  }, [participants, sortBy, sortDir]);
 
   const descCount = Object.keys(descriptions).length;
 
@@ -414,14 +501,47 @@ export default function AdminDashboard() {
                       </th>
                     ))}
                     <th className="px-4 py-3 font-semibold text-center" style={{ color: "var(--muted)" }}>Postęp</th>
-                    <th className="px-4 py-3 font-semibold text-center" style={{ color: "var(--muted)" }}>Ocena PM</th>
-                    <th className="px-4 py-3 font-semibold text-center" style={{ color: "var(--muted)" }}>CFO</th>
-                    <th className="px-4 py-3 font-semibold text-center" style={{ color: "var(--muted)" }}>Obrona</th>
+                    <th
+                      className="px-4 py-3 font-semibold text-center cursor-pointer select-none hover:opacity-80"
+                      style={{ color: sortBy === "pmScore" ? "var(--accent)" : "var(--muted)" }}
+                      onClick={() => toggleSort("pmScore")}
+                    >
+                      Ocena PM {sortBy === "pmScore" ? (sortDir === "desc" ? "\u2193" : "\u2191") : ""}
+                    </th>
+                    <th
+                      className="px-4 py-3 font-semibold text-center cursor-pointer select-none hover:opacity-80"
+                      style={{ color: sortBy === "cfoApproved" ? "var(--accent)" : "var(--muted)" }}
+                      onClick={() => toggleSort("cfoApproved")}
+                    >
+                      CFO {sortBy === "cfoApproved" ? (sortDir === "desc" ? "\u2193" : "\u2191") : ""}
+                    </th>
+                    <th
+                      className="px-4 py-3 font-semibold text-center cursor-pointer select-none hover:opacity-80"
+                      style={{ color: sortBy === "defenseDecision" ? "var(--accent)" : "var(--muted)" }}
+                      onClick={() => toggleSort("defenseDecision")}
+                    >
+                      Obrona {sortBy === "defenseDecision" ? (sortDir === "desc" ? "\u2193" : "\u2191") : ""}
+                    </th>
                     <th className="px-4 py-3 font-semibold text-center" style={{ color: "var(--muted)", minWidth: "100px" }}>Opis</th>
+                    <th
+                      className="px-4 py-3 font-semibold text-center cursor-pointer select-none hover:opacity-80 whitespace-nowrap"
+                      style={{ color: sortBy === "createdAt" ? "var(--accent)" : "var(--muted)" }}
+                      onClick={() => toggleSort("createdAt")}
+                    >
+                      Rejestracja {sortBy === "createdAt" ? (sortDir === "desc" ? "\u2193" : "\u2191") : ""}
+                    </th>
+                    <th
+                      className="px-4 py-3 font-semibold text-center cursor-pointer select-none hover:opacity-80 whitespace-nowrap"
+                      style={{ color: sortBy === "lastLoginAt" ? "var(--accent)" : "var(--muted)" }}
+                      onClick={() => toggleSort("lastLoginAt")}
+                    >
+                      Ost. logowanie {sortBy === "lastLoginAt" ? (sortDir === "desc" ? "\u2193" : "\u2191") : ""}
+                    </th>
+                    <th className="px-4 py-3 font-semibold text-center" style={{ color: "var(--muted)" }}></th>
                   </tr>
                 </thead>
                 <tbody>
-                  {participants.map((p, idx) => (
+                  {sortedParticipants.map((p, idx) => (
                     <>
                       <tr
                         key={p.id}
@@ -586,12 +706,42 @@ export default function AdminDashboard() {
                             </button>
                           )}
                         </td>
+                        <td className="px-4 py-3 text-center whitespace-nowrap">
+                          <span className="text-xs text-muted">{formatDate(p.createdAt)}</span>
+                        </td>
+                        <td className="px-4 py-3 text-center whitespace-nowrap">
+                          <span className="text-xs text-muted">{formatDate(p.lastLoginAt)}</span>
+                        </td>
+                        <td className="px-4 py-3 text-center">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              deleteParticipant(p.id, p.name);
+                            }}
+                            disabled={deleting[p.id]}
+                            className="text-xs px-2.5 py-1 rounded-[10px] font-medium transition-all duration-200 disabled:opacity-50"
+                            style={{
+                              background: "#fef2f2",
+                              color: "#dc2626",
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.background = "#dc2626";
+                              e.currentTarget.style.color = "#fff";
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.background = "#fef2f2";
+                              e.currentTarget.style.color = "#dc2626";
+                            }}
+                          >
+                            {deleting[p.id] ? "..." : "Usuń"}
+                          </button>
+                        </td>
                       </tr>
 
                       {/* Expanded row with PM scores + description */}
                       {expandedRow === p.id && (
                         <tr key={`${p.id}-details`} style={{ background: "var(--accent-light)", borderTop: "1px solid var(--accent-glow)" }}>
-                          <td colSpan={12} className="px-6 py-4">
+                          <td colSpan={15} className="px-6 py-4">
                             <div className="text-sm space-y-4">
                               {p.projectTitle && (
                                 <div>

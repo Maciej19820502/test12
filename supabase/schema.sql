@@ -7,7 +7,8 @@ create table if not exists users (
   id uuid primary key default gen_random_uuid(),
   email text unique not null,
   name text not null,
-  created_at timestamp with time zone default now()
+  created_at timestamp with time zone default now(),
+  last_login_at timestamp with time zone default now()
 );
 
 -- 2. Projects
@@ -106,6 +107,7 @@ alter table defense_results enable row level security;
 create policy "Allow insert for anon" on users for insert with check (true);
 create policy "Allow select for anon" on users for select using (true);
 create policy "Allow update own user" on users for update using (true);
+create policy "Allow delete users" on users for delete using (true);
 
 -- Projects
 create policy "Allow insert projects" on projects for insert with check (true);
